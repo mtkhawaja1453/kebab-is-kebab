@@ -265,6 +265,7 @@ async def create_checkout_session(order: Order):
     )
 
     try:
+        print(f"DEBUG success_url: {FRONTEND_URL}/order-confirmation?session_id={{CHECKOUT_SESSION_ID}}")
         session = stripe.checkout.Session.create(
             payment_method_types=["card"],
             line_items=stripe_line_items,
