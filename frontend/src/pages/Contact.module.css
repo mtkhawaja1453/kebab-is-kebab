@@ -1,0 +1,158 @@
+.page {
+  min-height: 100vh;
+  padding: 9rem 5rem 6rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+.header h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 4.5vw, 4rem);
+  font-weight: 900;
+  margin-bottom: 0.75rem;
+}
+.headerSub {
+  color: var(--muted);
+  font-size: 1rem;
+  max-width: 46ch;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ── Layout ── */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 4rem;
+  align-items: start;
+}
+
+/* ── Info column ── */
+.infoBlock { margin-bottom: 2rem; }
+.infoLabel {
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--amber);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.infoValue { font-size: 0.97rem; line-height: 1.75; color: var(--warm-white); }
+.directionsBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  background: var(--amber);
+  color: var(--dark);
+  font-weight: 600;
+  font-size: 0.88rem;
+  padding: 0.7rem 1.5rem;
+  border-radius: 3px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: background 0.2s;
+  margin-top: 0.5rem;
+}
+.directionsBtn:hover { background: var(--saffron); }
+
+/* ── Form ── */
+.formWrap {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2.5rem;
+}
+
+.form { display: flex; flex-direction: column; gap: 1.25rem; }
+
+.field { display: flex; flex-direction: column; gap: 0.4rem; }
+.field label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.field input,
+.field textarea {
+  background: var(--dark);
+  border: 1px solid var(--border);
+  color: var(--warm-white);
+  border-radius: 3px;
+  padding: 0.75rem 1rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+  resize: vertical;
+  outline: none;
+}
+.field input:focus,
+.field textarea:focus {
+  border-color: var(--amber);
+}
+/* .field input::placeholder, */
+/* .field textarea::placeholder { color: var(--muted); } */
+.field input::placeholder,
+.field textarea::placeholder { color: var(--muted); }
+
+.inputError {
+  border-color: #e87070 !important;
+}
+.inputError:focus {
+  border-color: #e87070 !important;
+}
+.fieldError {
+  font-size: 0.78rem;
+  color: #e87070;
+  margin-top: 0.15rem;
+}
+
+/* ── Success state ── */
+.successMsg {
+  text-align: center;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.successIcon {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: rgba(232, 160, 32, 0.15);
+  color: var(--amber);
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--amber);
+}
+.successMsg h3 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.successMsg p { color: var(--muted); font-size: 0.9rem; }
+
+/* ── Error ── */
+.serverError {
+  color: #e87070;
+  font-size: 0.85rem;
+  background: rgba(232, 112, 112, 0.08);
+  border: 1px solid rgba(232, 112, 112, 0.2);
+  border-radius: 3px;
+  padding: 0.65rem 1rem;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .page { padding: 8rem 1.5rem 4rem; }
+  .layout { grid-template-columns: 1fr; gap: 2.5rem; }
+  .formWrap { padding: 1.5rem; }
+}

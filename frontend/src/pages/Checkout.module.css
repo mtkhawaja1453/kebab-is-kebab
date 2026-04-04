@@ -1,0 +1,183 @@
+.page {
+  min-height: 100vh;
+  padding: 9rem 5rem 6rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 3rem;
+}
+.header h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 4vw, 3.5rem);
+  font-weight: 900;
+}
+
+/* ── Layout ── */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+/* ── Summary ── */
+.summary {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  position: sticky;
+  top: 7rem;
+}
+.summaryHeader {
+  padding: 1rem 1.25rem;
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--border);
+}
+.pickupBanner {
+  background: rgba(232, 160, 32, 0.08);
+  border-bottom: 1px solid rgba(232, 160, 32, 0.2);
+  padding: 0.75rem 1.25rem;
+  font-size: 0.8rem;
+  color: var(--amber);
+  line-height: 1.5;
+}
+.pickupBanner span { color: var(--muted); font-size: 0.75rem; }
+
+.summaryItem {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.8rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+.summaryEmoji { font-size: 1.1rem; width: 1.5rem; text-align: center; flex-shrink: 0; }
+.summaryName { flex: 1; }
+.summaryQty { color: var(--muted); font-size: 0.8rem; flex-shrink: 0; }
+.summaryPrice { font-family: var(--font-heading); color: var(--amber); font-size: 1rem; flex-shrink: 0; }
+
+.summaryTotal {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 1rem 1.25rem;
+  font-weight: 600;
+  border-top: 1px solid var(--border);
+  font-size: 1rem;
+}
+.summaryTotal span:last-child {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  color: var(--amber);
+}
+.paymentNote {
+  padding: 0 1.25rem 1rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.stripeBadge {
+  padding: 0.75rem 1.25rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.cancelledBanner {
+  background: rgba(232, 112, 112, 0.08);
+  border: 1px solid rgba(232, 112, 112, 0.25);
+  border-radius: 4px;
+  color: #e87070;
+  padding: 0.85rem 1.25rem;
+  font-size: 0.88rem;
+  margin-bottom: 2rem;
+}
+
+/* ── Form ── */
+.formWrap {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2rem;
+}
+.form { display: flex; flex-direction: column; gap: 1.1rem; }
+
+.formSection {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--amber);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  margin-top: 0.5rem;
+}
+.formSection:first-child { margin-top: 0; }
+
+.fieldRow { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+.field { display: flex; flex-direction: column; gap: 0.35rem; }
+.field label {
+  font-size: 0.78rem; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+}
+.optional { font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 0.78rem; }
+
+.field input,
+.field select,
+.field textarea {
+  background: var(--dark);
+  border: 1px solid var(--border);
+  color: var(--warm-white);
+  border-radius: 3px;
+  padding: 0.7rem 0.9rem;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  transition: border-color 0.2s;
+  outline: none;
+  resize: vertical;
+}
+.field select { cursor: pointer; }
+.field select option { background: var(--charcoal); }
+.field input:focus,
+.field select:focus,
+.field textarea:focus { border-color: var(--amber); }
+.field input::placeholder,
+.field textarea::placeholder { color: var(--muted); }
+
+.inputError { border-color: #e87070 !important; }
+.fieldError { font-size: 0.76rem; color: #e87070; }
+
+.serverError {
+  color: #e87070; font-size: 0.85rem;
+  background: rgba(232, 112, 112, 0.08);
+  border: 1px solid rgba(232, 112, 112, 0.2);
+  border-radius: 3px; padding: 0.65rem 1rem;
+}
+
+.submitNote {
+  text-align: center; font-size: 0.78rem;
+  color: var(--muted); margin-top: 0.25rem;
+}
+
+/* ── Empty cart ── */
+.emptyCart {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; min-height: 60vh;
+  gap: 1rem; text-align: center; color: var(--muted);
+}
+.emptyIcon { font-size: 4rem; }
+.emptyCart h2 { font-family: var(--font-display); font-size: 1.8rem; color: var(--warm-white); }
+.emptyCart p { font-size: 0.95rem; }
+
+/* ── Responsive ── */
+@media (max-width: 860px) {
+  .page { padding: 8rem 1.5rem 4rem; }
+  .layout { grid-template-columns: 1fr; }
+  .summary { position: static; }
+  .fieldRow { grid-template-columns: 1fr; }
+  .formWrap { padding: 1.5rem; }
+}

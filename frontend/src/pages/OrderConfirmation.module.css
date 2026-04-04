@@ -1,0 +1,110 @@
+.page {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 8rem 1.5rem 4rem;
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 3rem 2.5rem;
+  max-width: 520px;
+  width: 100%;
+  text-align: center;
+}
+
+.iconWrap {
+  width: 4rem; height: 4rem; border-radius: 50%;
+  background: rgba(232, 160, 32, 0.12);
+  border: 1px solid var(--amber);
+  color: var(--amber);
+  font-size: 1.75rem;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1.25rem;
+}
+
+.heading {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  font-weight: 900;
+  margin: 0.5rem 0 1rem;
+}
+
+.sub {
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 1.75rem;
+}
+.sub strong { color: var(--warm-white); }
+
+.orderNumber {
+  background: var(--dark);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+.orderNumberLabel {
+  font-size: 0.7rem; font-weight: 600;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 0.4rem;
+}
+.orderNumberValue {
+  font-family: var(--font-heading);
+  font-size: 2rem; color: var(--amber); letter-spacing: 0.1em;
+}
+
+.detailGrid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 1rem; margin-bottom: 1.5rem;
+}
+.detailItem {
+  background: var(--dark);
+  border: 1px solid var(--border);
+  border-radius: 4px; padding: 0.9rem 0.5rem;
+}
+.detailLabel {
+  font-size: 0.68rem; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 0.3rem;
+}
+.detailValue { font-size: 0.9rem; font-weight: 500; }
+
+.pickupBox {
+  background: rgba(232, 160, 32, 0.08);
+  border: 1px solid rgba(232, 160, 32, 0.2);
+  border-radius: 4px;
+  padding: 0.9rem 1.25rem;
+  font-size: 0.85rem;
+  color: var(--amber);
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+.pickupBox strong { color: var(--warm-white); }
+
+.actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+.center {
+  text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 1rem;
+}
+
+.spinner {
+  width: 40px; height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--amber);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.errorIcon {
+  width: 4rem; height: 4rem; border-radius: 50%;
+  background: rgba(232, 112, 112, 0.1);
+  border: 1px solid #e87070;
+  color: #e87070;
+  font-size: 1.5rem;
+  display: flex; align-items: center; justify-content: center;
+}
