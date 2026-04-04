@@ -111,7 +111,7 @@ export default function Checkout() {
     }
 
     try {
-      const res = await fetch('/api/orders/create-session', {
+      const res = await fetch(`${BASE}/orders/create-session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
