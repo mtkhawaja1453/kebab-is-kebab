@@ -2,7 +2,7 @@
 // Because Vite proxies /api → http://localhost:8000, these work in dev with no CORS issues.
 
 // const BASE = import.meta.env.VITE_API_URL || '/api'
-const BASE = import.meta.env.VITE_API_URL || '/api'
+export const BASE = import.meta.env.VITE_API_URL || '/api'
 
 export async function fetchMenu(category = null) {
   const url = category ? `${BASE}/menu?category=${category}` : `${BASE}/menu`

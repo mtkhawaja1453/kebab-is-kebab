@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useFadeUp } from '../hooks/useFadeUp'
 import styles from './Checkout.module.css'
+import { BASE } from '../api'
 
 // ── Validation ────────────────────────────────────────────────────────────────
 function validate(form) {
