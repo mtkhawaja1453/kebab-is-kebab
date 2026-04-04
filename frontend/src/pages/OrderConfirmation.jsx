@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import styles from './OrderConfirmation.module.css'
+import { BASE } from '../api'
 
 export default function OrderConfirmation() {
   const [searchParams]      = useSearchParams()
@@ -40,7 +41,7 @@ export default function OrderConfirmation() {
       return
     }
 
-    fetch(`/api/orders/verify/${sessionId}`)
+    fetch(`${BASE}/orders/verify/${sessionId}`)
       .then(async res => {
         if (!res.ok) {
           const data = await res.json()
