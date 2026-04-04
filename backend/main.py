@@ -17,10 +17,13 @@ from email.mime.multipart import MIMEMultipart
 from models import Order, ContactMessage
 from data import MENU_ITEMS
 
+import resend
+
 load_dotenv()
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+resend.api_key = os.getenv("RESEND_API_KEY")
 
 app = FastAPI(
     title="Kebab Is Kebab API",
@@ -48,29 +51,36 @@ ESTIMATED_PICKUP_MINUTES = 30
 
 # ── EMAIL HELPER ──────────────────────────────────────────────────────────────
 async def send_email(to: str, subject: str, html_body: str) -> None:
-    sender   = os.getenv("GMAIL_SENDER")
-    password = os.getenv("GMAIL_APP_PASSWORD")
+    # sender   = os.getenv("GMAIL_SENDER")
+    # password = os.getenv("GMAIL_APP_PASSWORD")
 
-    if not all([sender, password]):
-        raise RuntimeError(
-            "Email env vars not set. Add GMAIL_SENDER and GMAIL_APP_PASSWORD to backend/.env"
-        )
+    # if not all([sender, password]):
+    #     raise RuntimeError(
+    #         "Email env vars not set. Add GMAIL_SENDER and GMAIL_APP_PASSWORD to backend/.env"
+    #     )
 
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"]    = f"Kebab Is Kebab <{sender}>"
-    msg["To"]      = to
-    msg.attach(MIMEText(html_body, "html"))
+    # msg = MIMEMultipart("alternative")
+    # msg["Subject"] = subject
+    # msg["From"]    = f"Kebab Is Kebab <{sender}>"
+    # msg["To"]      = to
+    # msg.attach(MIMEText(html_body, "html"))
 
-    await aiosmtplib.send(
-        msg,
-        hostname="smtp.gmail.com",
-        port=587,
-        start_tls=True,
-        username=sender,
-        password=password,
-    )
-
+    # await aiosmtplib.send(
+    #     msg,
+    #     hostname="smtp.gmail.com",
+    #     port=587,
+    #     start_tls=True,
+    #     username=sender,
+    #     password=password,
+    # )
+    if not resend.api_key:
+        raise RuntimeError("RESEND_API_KEY not set in environment variables.")
+    resend.Emails.send({
+        "from": "Kebab Is Kebab <onboarding@resend.dev>",
+        "to": to,
+        "subject": subject,
+        "html": html_body,
+    })
 
 def order_items_html(order_lines: list) -> str:
     rows = ""
