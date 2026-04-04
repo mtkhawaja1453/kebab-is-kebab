@@ -269,8 +269,7 @@ async def create_checkout_session(order: Order):
             payment_method_types=["card"],
             line_items=stripe_line_items,
             mode="payment",
-            # After payment, Stripe redirects here — frontend reads session_id
-            return_url=f"{FRONTEND_URL}/order-confirmation?session_id={{CHECKOUT_SESSION_ID}}",
+            success_url=f"{FRONTEND_URL}/order-confirmation?session_id={{CHECKOUT_SESSION_ID}}",
             cancel_url=f"{FRONTEND_URL}/payment-cancelled",
             customer_email=order.customer_email,
             metadata={
