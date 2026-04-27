@@ -1,30 +1,24 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { fetchMenu } from '../api'
 import { useFadeUp } from '../hooks/useFadeUp'
 import { useCart } from '../context/CartContext'
+import ItemModal from '../components/ItemModal'
 import styles from './Menu.module.css'
 
 const CATEGORIES = [
-  { value: null, label: 'All' },
-  { value: 'kebab', label: 'Kebabs' },
-  { value: 'pizza', label: 'Pide Pizza' },
-  { value: 'sides', label: 'Sides' },
+  { value: null,      label: 'All' },
+  { value: 'kebab',  label: 'Kebabs' },
+  { value: 'pizza',  label: 'Pide Pizza' },
+  { value: 'sides',  label: 'Sides' },
   { value: 'drinks', label: 'Drinks' },
+  { value: 'other',  label: 'Other' },
 ]
 
-function MenuCard({ item, index }) {
+function MenuCard({ item, index, onOpen }) {
   const ref = useFadeUp(index * 60)
-  const { addItem } = useCart()
-  const [added, setAdded] = useState(false)
-
-  const handleAdd = () => {
-    addItem(item)
-    setAdded(true)
-    setTimeout(() => setAdded(false), 1200)
-  }
 
   return (
-    <div ref={ref} className={`${styles.card} fade-up`}>
+    <div ref={ref} className={`${styles.card} fade-up`} onClick={() => item.available && onOpen(item)} style={{ cursor: item.available ? 'pointer' : 'default' }}>
       <div className={styles.cardEmoji}>{item.emoji}</div>
       <div className={styles.cardBody}>
         <div className={styles.cardTop}>
@@ -36,11 +30,11 @@ function MenuCard({ item, index }) {
           <span className={styles.cardPrice}>${item.price.toFixed(2)}</span>
           {item.available ? (
             <button
-              className={`${styles.addBtn} ${added ? styles.addBtnAdded : ''}`}
-              onClick={handleAdd}
-              aria-label={`Add ${item.name} to cart`}
+              className={styles.addBtn}
+              onClick={e => { e.stopPropagation(); onOpen(item) }}
+              aria-label={`Customise ${item.name}`}
             >
-              {added ? '✓ Added' : '+ Add'}
+              + Add
             </button>
           ) : (
             <span className={styles.unavailable}>Unavailable</span>
@@ -51,12 +45,12 @@ function MenuCard({ item, index }) {
   )
 }
 
-
 export default function Menu() {
-  const [items, setItems] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [items,          setItems]          = useState([])
+  const [loading,        setLoading]        = useState(true)
+  const [error,          setError]          = useState(null)
   const [activeCategory, setActiveCategory] = useState(null)
+  const [modalItem,      setModalItem]      = useState(null)
   const headerRef = useFadeUp()
 
   useEffect(() => {
@@ -68,17 +62,19 @@ export default function Menu() {
       .finally(()  => setLoading(false))
   }, [activeCategory])
 
+  const handleOpen  = useCallback(item => setModalItem(item), [])
+  const handleClose = useCallback(() => setModalItem(null), [])
+
   return (
     <main className={styles.page}>
       <div ref={headerRef} className={`${styles.header} fade-up`}>
         <span className="section-tag">91 Queen St, St Marys · Pick-up Only</span>
         <h1>Our Menu</h1>
         <p className={styles.headerSub}>
-          Everything made fresh. Add items to your cart and place a pick-up order online.
+          Everything made fresh. Click any item to customise and add to your cart.
         </p>
       </div>
 
-      {/* Category filter */}
       <div className={styles.filters}>
         {CATEGORIES.map(cat => (
           <button
@@ -90,8 +86,7 @@ export default function Menu() {
           </button>
         ))}
       </div>
-      
-      {/* States */}
+
       {loading && (
         <div className={styles.state}>
           <div className={styles.spinner} />
@@ -111,14 +106,17 @@ export default function Menu() {
       {!loading && !error && (
         <div className={styles.grid}>
           {items.map((item, i) => (
-            <MenuCard key={item.id} item={item} index={i} />
+            <MenuCard key={item.id} item={item} index={i} onOpen={handleOpen} />
           ))}
         </div>
       )}
 
       <div className={styles.footer}>
-        <p>Online ordering coming soon. For now, order via walk-in, UberEats or DoorDash.</p>
+        <p>Pick-up only — we do not offer delivery through this website.</p>
       </div>
+
+      {/* Item customisation modal */}
+      {modalItem && <ItemModal item={modalItem} onClose={handleClose} />}
     </main>
   )
 }

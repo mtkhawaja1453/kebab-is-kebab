@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useCart } from '../context/CartContext'
+import { useCart, linePrice } from '../context/CartContext'
 import { useFadeUp } from '../hooks/useFadeUp'
 import styles from './Checkout.module.css'
 import { BASE } from '../api'
@@ -100,9 +100,10 @@ export default function Checkout() {
     setServerError('')
 
     const payload = {
-      items: items.map(({ item, quantity }) => ({
+      items: items.map(({ item, quantity, selections }) => ({
         menu_item_id: item.id,
         quantity,
+        selections: selections || {},
       })),
       customer_name:  form.name.trim(),
       customer_email: form.email.trim(),
@@ -169,14 +170,35 @@ export default function Checkout() {
             🏪 Pick-up only · 91 Queen St, St Marys<br />
             <span>We do not offer delivery through this website.</span>
           </div>
-          {items.map(({ item, quantity }) => (
-            <div key={item.id} className={styles.summaryItem}>
-              <span className={styles.summaryEmoji}>{item.emoji}</span>
-              <span className={styles.summaryName}>{item.name}</span>
-              <span className={styles.summaryQty}>×{quantity}</span>
-              <span className={styles.summaryPrice}>${(item.price * quantity).toFixed(2)}</span>
-            </div>
-          ))}
+          {items.map((cartItem) => {
+            const { item, quantity, selections, key } = cartItem
+            const selLines = (item.option_groups || [])
+              .map(group => {
+                const chosen = (selections || {})[group.id] || []
+                if (chosen.length === 0) return null
+                const labels = chosen.map(id => {
+                  const opt = group.options.find(o => o.id === id)
+                  return opt ? (opt.price_add > 0 ? `${opt.label} (+$${opt.price_add.toFixed(2)})` : opt.label) : id
+                })
+                return { groupLabel: group.label, labels }
+              })
+              .filter(Boolean)
+            return (
+              <div key={key} className={styles.summaryItem}>
+                <span className={styles.summaryEmoji}>{item.emoji}</span>
+                <div className={styles.summaryItemInfo}>
+                  <span className={styles.summaryName}>{item.name}</span>
+                  {selLines.map((line, i) => (
+                    <span key={i} className={styles.summarySels}>
+                      <span className={styles.summarySelGroup}>{line.groupLabel}:</span> {line.labels.join(', ')}
+                    </span>
+                  ))}
+                </div>
+                <span className={styles.summaryQty}>×{quantity}</span>
+                <span className={styles.summaryPrice}>${linePrice(cartItem).toFixed(2)}</span>
+              </div>
+            )
+          })}
           <div className={styles.summaryTotal}>
             <span>Total</span>
             <span>${totalPrice.toFixed(2)}</span>

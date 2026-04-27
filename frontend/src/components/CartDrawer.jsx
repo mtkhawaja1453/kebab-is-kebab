@@ -1,19 +1,32 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useCart } from '../context/CartContext'
+import { useCart, linePrice } from '../context/CartContext'
 import styles from './CartDrawer.module.css'
+
+function selectionSummary(item, selections) {
+  if (!selections || !item.option_groups) return []
+  const lines = []
+  for (const group of item.option_groups) {
+    const chosen = selections[group.id] || []
+    if (chosen.length === 0) continue
+    const labels = chosen.map(id => {
+      const opt = group.options.find(o => o.id === id)
+      return opt ? opt.label : id
+    })
+    lines.push(labels.join(', '))
+  }
+  return lines
+}
 
 export default function CartDrawer() {
   const { items, isOpen, setIsOpen, removeItem, updateQuantity, totalPrice, totalItems } = useCart()
   const navigate = useNavigate()
 
-  // Lock body scroll when open
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [isOpen])
 
-  // Close on Escape
   useEffect(() => {
     const handler = e => { if (e.key === 'Escape') setIsOpen(false) }
     window.addEventListener('keydown', handler)
@@ -27,13 +40,11 @@ export default function CartDrawer() {
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className={`${styles.backdrop} ${isOpen ? styles.backdropVisible : ''}`}
         onClick={() => setIsOpen(false)}
       />
 
-      {/* Drawer */}
       <div className={`${styles.drawer} ${isOpen ? styles.drawerOpen : ''}`} role="dialog" aria-label="Your cart">
         <div className={styles.header}>
           <div className={styles.headerTitle}>
@@ -51,26 +62,33 @@ export default function CartDrawer() {
           <div className={styles.empty}>
             <div className={styles.emptyIcon}>🛒</div>
             <p>Your cart is empty</p>
-            <button className="btn-outline" onClick={() => {setIsOpen(false); navigate('/menu');}}>Browse Menu</button>
+            <button className="btn-outline" onClick={() => setIsOpen(false)}>Browse Menu</button>
           </div>
         ) : (
           <>
             <div className={styles.itemList}>
-              {items.map(({ item, quantity }) => (
-                <div key={item.id} className={styles.cartItem}>
-                  <div className={styles.itemEmoji}>{item.emoji}</div>
-                  <div className={styles.itemInfo}>
-                    <div className={styles.itemName}>{item.name}</div>
-                    <div className={styles.itemPrice}>${(item.price * quantity).toFixed(2)}</div>
+              {items.map(cartItem => {
+                const selLines = selectionSummary(cartItem.item, cartItem.selections)
+                const price    = linePrice(cartItem)
+                return (
+                  <div key={cartItem.key} className={styles.cartItem}>
+                    <div className={styles.itemEmoji}>{cartItem.item.emoji}</div>
+                    <div className={styles.itemInfo}>
+                      <div className={styles.itemName}>{cartItem.item.name}</div>
+                      {selLines.map((line, i) => (
+                        <div key={i} className={styles.itemSel}>{line}</div>
+                      ))}
+                      <div className={styles.itemPrice}>${price.toFixed(2)}</div>
+                    </div>
+                    <div className={styles.qtyControl}>
+                      <button onClick={() => updateQuantity(cartItem.key, cartItem.quantity - 1)} aria-label="Decrease">−</button>
+                      <span>{cartItem.quantity}</span>
+                      <button onClick={() => updateQuantity(cartItem.key, cartItem.quantity + 1)} aria-label="Increase">+</button>
+                    </div>
+                    <button className={styles.removeBtn} onClick={() => removeItem(cartItem.key)} aria-label="Remove item">✕</button>
                   </div>
-                  <div className={styles.qtyControl}>
-                    <button onClick={() => updateQuantity(item.id, quantity - 1)} aria-label="Decrease">−</button>
-                    <span>{quantity}</span>
-                    <button onClick={() => updateQuantity(item.id, quantity + 1)} aria-label="Increase">+</button>
-                  </div>
-                  <button className={styles.removeBtn} onClick={() => removeItem(item.id)} aria-label="Remove item">✕</button>
-                </div>
-              ))}
+                )
+              })}
             </div>
 
             <div className={styles.footer}>

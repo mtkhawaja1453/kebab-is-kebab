@@ -8,52 +8,65 @@ function loadCart() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     return stored ? JSON.parse(stored) : []
-  } catch {
-    return []
-  }
+  } catch { return [] }
 }
 
 function saveCart(items) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
-  } catch {
-    // localStorage unavailable (private browsing quota etc.) — fail silently
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)) } catch {}
+}
+
+// Calculate the total price of one cart line including option add-ons
+export function linePrice(cartItem) {
+  const base = cartItem.item.price
+  let addons = 0
+  if (cartItem.selections && cartItem.item.option_groups) {
+    for (const group of cartItem.item.option_groups) {
+      const chosen = cartItem.selections[group.id] || []
+      for (const choiceId of chosen) {
+        const choice = group.options.find(o => o.id === choiceId)
+        if (choice) addons += choice.price_add
+      }
+    }
   }
+  return (base + addons) * cartItem.quantity
+}
+
+// Unique cart key — same item with different selections = different cart lines
+function cartKey(itemId, selections) {
+  if (!selections || Object.keys(selections).length === 0) return `${itemId}`
+  const sorted = Object.keys(selections).sort()
+    .map(k => `${k}:${[...(selections[k])].sort().join(',')}`)
+    .join('|')
+  return `${itemId}__${sorted}`
 }
 
 export function CartProvider({ children }) {
-  const [items,  setItems]  = useState(() => loadCart())  // initialise from localStorage
+  const [items,  setItems]  = useState(() => loadCart())
   const [isOpen, setIsOpen] = useState(false)
 
-  // Sync to localStorage whenever items change
-  useEffect(() => {
-    saveCart(items)
-  }, [items])
+  useEffect(() => { saveCart(items) }, [items])
 
-  const addItem = useCallback((menuItem) => {
+  const addItem = useCallback((menuItem, selections = {}) => {
+    const key = cartKey(menuItem.id, selections)
     setItems(prev => {
-      const existing = prev.find(i => i.item.id === menuItem.id)
+      const existing = prev.find(i => i.key === key)
       if (existing) {
-        return prev.map(i =>
-          i.item.id === menuItem.id ? { ...i, quantity: i.quantity + 1 } : i
-        )
+        return prev.map(i => i.key === key ? { ...i, quantity: i.quantity + 1 } : i)
       }
-      return [...prev, { item: menuItem, quantity: 1 }]
+      return [...prev, { key, item: menuItem, quantity: 1, selections }]
     })
     setIsOpen(true)
   }, [])
 
-  const removeItem = useCallback((itemId) => {
-    setItems(prev => prev.filter(i => i.item.id !== itemId))
+  const removeItem = useCallback((key) => {
+    setItems(prev => prev.filter(i => i.key !== key))
   }, [])
 
-  const updateQuantity = useCallback((itemId, quantity) => {
+  const updateQuantity = useCallback((key, quantity) => {
     if (quantity < 1) {
-      setItems(prev => prev.filter(i => i.item.id !== itemId))
+      setItems(prev => prev.filter(i => i.key !== key))
     } else {
-      setItems(prev =>
-        prev.map(i => i.item.id === itemId ? { ...i, quantity } : i)
-      )
+      setItems(prev => prev.map(i => i.key === key ? { ...i, quantity } : i))
     }
   }, [])
 
@@ -63,7 +76,7 @@ export function CartProvider({ children }) {
   }, [])
 
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0)
-  const totalPrice = items.reduce((sum, i) => sum + i.item.price * i.quantity, 0)
+  const totalPrice = items.reduce((sum, i) => sum + linePrice(i), 0)
 
   return (
     <CartContext.Provider value={{

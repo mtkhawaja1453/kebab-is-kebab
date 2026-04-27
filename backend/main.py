@@ -1,10 +1,3 @@
-"""
-Kebab Is Kebab - FastAPI Backend
----------------------------------
-Run with:  uvicorn main:app --reload
-Docs at:   http://localhost:8000/docs
-"""
-
 from fastapi import FastAPI, HTTPException, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -15,7 +8,10 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 from models import Order, ContactMessage
-from data import MENU_ITEMS
+from menu_store import load_menu
+from admin import router as admin_router
+
+from models import OrderItem
 
 import resend
 
@@ -43,6 +39,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(admin_router)
 
 # ── CONFIG ────────────────────────────────────────────────────────────────────
 # Change this to update the estimated pickup time shown in confirmation emails.
@@ -84,15 +82,20 @@ async def send_email(to: str, subject: str, html_body: str) -> None:
 
 def order_items_html(order_lines: list) -> str:
     rows = ""
-    for name, qty, unit_price, line_total in order_lines:
+    for name, qty, unit_price, line_total, sel_labels in order_lines:
+        sel_str = ""
+        if sel_labels:
+            sel_str = "".join(
+                f"<br><span style='font-size:12px;color:#888;padding-left:8px;'>{label}</span>"
+                for label in sel_labels
+            )
         rows += f"""
         <tr>
-          <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;">{name}</td>
-          <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;text-align:center;color:#888;">×{qty}</td>
-          <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;text-align:right;">${line_total:.2f}</td>
+          <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;">{name}{sel_str}</td>
+          <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;text-align:center;color:#888;vertical-align:top;">×{qty}</td>
+          <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;text-align:right;vertical-align:top;">${line_total:.2f}</td>
         </tr>"""
     return rows
-
 
 async def send_order_emails(order_number: str, order: Order, order_lines: list, total: float, pickup_fmt: str):
     """Send confirmation emails to both the store and the customer."""
@@ -204,7 +207,7 @@ def root():
 # ── MENU ──────────────────────────────────────────────────────────────────────
 @app.get("/api/menu", tags=["Menu"])
 def get_menu(category: str | None = None):
-    items = MENU_ITEMS
+    items = load_menu()
     if category:
         items = [i for i in items if i.category.value == category]
     return {"items": [i.model_dump() for i in items]}
@@ -212,7 +215,7 @@ def get_menu(category: str | None = None):
 
 @app.get("/api/menu/{item_id}", tags=["Menu"])
 def get_menu_item(item_id: int):
-    item = next((i for i in MENU_ITEMS if i.id == item_id), None)
+    item = next((i for i in load_menu() if i.id == item_id), None)
     if not item:
         raise HTTPException(status_code=404, detail="Menu item not found")
     return item.model_dump()
@@ -225,7 +228,7 @@ async def create_checkout_session(order: Order):
     Validate the order, store all order details in Stripe session metadata,
     then return a Stripe Checkout URL for the frontend to redirect to.
     """
-    menu_lookup = {i.id: i for i in MENU_ITEMS}
+    menu_lookup = {i.id: i for i in load_menu()}
     for line in order.items:
         if line.menu_item_id not in menu_lookup:
             raise HTTPException(status_code=400, detail=f"Menu item {line.menu_item_id} does not exist")
@@ -236,18 +239,41 @@ async def create_checkout_session(order: Order):
     total             = 0.0
 
     for line in order.items:
-        item       = menu_lookup[line.menu_item_id]
-        line_total = item.price * line.quantity
+        item      = menu_lookup[line.menu_item_id]
+        unit_price = item.price
+
+        # Add option group price adds
+        selections = line.selections or {}
+        sel_labels = []
+        for group in (item.option_groups or []):
+            chosen = selections.get(group.id, [])
+            if not chosen:
+                continue
+            choice_labels = []
+            for choice_id in chosen:
+                choice = next((c for c in group.options if c.id == choice_id), None)
+                if choice:
+                    unit_price += choice.price_add
+                    choice_labels.append(
+                        f"{choice.label} (+${choice.price_add:.2f})" if choice.price_add > 0 else choice.label
+                    )
+            if choice_labels:
+                sel_labels.append(f"{group.label}: {', '.join(choice_labels)}")
+
+        line_total = unit_price * line.quantity
         total     += line_total
-        order_lines.append((item.name, line.quantity, item.price, line_total))
+        desc = item.description[:200]
+        if sel_labels:
+            desc += f" | {', '.join(sel_labels)}"
+        order_lines.append((item.name, line.quantity, unit_price, line_total, sel_labels))
         stripe_line_items.append({
             "price_data": {
                 "currency": "aud",
                 "product_data": {
                     "name": item.name,
-                    "description": item.description[:500],
+                    "description": desc[:500],
                 },
-                "unit_amount": int(item.price * 100),  # Stripe uses cents
+                "unit_amount": int(unit_price * 100),
             },
             "quantity": line.quantity,
         })
@@ -270,9 +296,19 @@ async def create_checkout_session(order: Order):
 
     # Store all order data in Stripe metadata so the webhook can reconstruct it
     # Stripe metadata values must be strings and each under 500 chars
-    items_meta = "|".join(
-        f"{line.menu_item_id}:{line.quantity}" for line in order.items
-    )
+    # Encode selections as item_id:quantity:group_id=choice1,choice2;group_id2=choice1
+    def encode_item(line):
+        base = f"{line.menu_item_id}:{line.quantity}"
+        if not line.selections:
+            return base
+        sel_parts = ";".join(
+            f"{gid}={','.join(cids)}"
+            for gid, cids in line.selections.items()
+            if cids
+        )
+        return f"{base}:{sel_parts}" if sel_parts else base
+
+    items_meta = "|".join(encode_item(line) for line in order.items)
 
     try:
         print(f"DEBUG success_url: {FRONTEND_URL}/order-confirmation?session_id={{CHECKOUT_SESSION_ID}}")
@@ -332,20 +368,64 @@ async def verify_order_session(session_id: str):
         }
 
     # Reconstruct order lines for the emails
-    menu_lookup = {i.id: i for i in MENU_ITEMS}
+    menu_lookup = {i.id: i for i in load_menu()}
     order_lines = []
     total       = 0.0
     for entry in meta["items"].split("|"):
-        item_id, qty = entry.split(":")
-        item          = menu_lookup[int(item_id)]
-        line_total    = item.price * int(qty)
-        total        += line_total
-        order_lines.append((item.name, int(qty), item.price, line_total))
+        parts    = entry.split(":")
+        item_id  = int(parts[0])
+        qty      = int(parts[1])
+        sel_str  = parts[2] if len(parts) > 2 else ""
+        item     = menu_lookup[item_id]
+
+        # Reconstruct selections dict
+        selections = {}
+        if sel_str:
+            for seg in sel_str.split(";"):
+                if "=" in seg:
+                    gid, cids = seg.split("=", 1)
+                    selections[gid] = cids.split(",")
+
+        # Calculate unit price including add-ons
+        unit_price = item.price
+        sel_labels = []
+        for group in (item.option_groups or []):
+            chosen = selections.get(group.id, [])
+            if not chosen:
+                continue
+            choice_labels = []
+            for choice_id in chosen:
+                choice = next((c for c in group.options if c.id == choice_id), None)
+                if choice:
+                    unit_price += choice.price_add
+                    choice_labels.append(
+                        f"{choice.label} (+${choice.price_add:.2f})" if choice.price_add > 0 else choice.label
+                    )
+            if choice_labels:
+                sel_labels.append(f"{group.label}: {', '.join(choice_labels)}")
+
+        line_total = unit_price * qty
+        total     += line_total
+        order_lines.append((item.name, qty, unit_price, line_total, sel_labels))
 
     # Reconstruct a minimal Order object for the email helper
-    from models import OrderItem
+    def parse_order_item(e):
+        parts = e.split(":")
+        sel_str = parts[2] if len(parts) > 2 else ""
+        selections = {}
+        if sel_str:
+            for seg in sel_str.split(";"):
+                if "=" in seg:
+                    gid, cids = seg.split("=", 1)
+                    selections[gid] = cids.split(",")
+        return OrderItem(
+            menu_item_id=int(parts[0]),
+            quantity=int(parts[1]),
+            selections=selections or None,
+        )
+
     order_obj = Order(
-        items=[OrderItem(menu_item_id=int(e.split(":")[0]), quantity=int(e.split(":")[1])) for e in meta["items"].split("|")],
+        items=[parse_order_item(e) for e in meta["items"].split("|")],
         customer_name=meta["customer_name"],
         customer_email=meta["customer_email"],
         customer_phone=meta["customer_phone"],
