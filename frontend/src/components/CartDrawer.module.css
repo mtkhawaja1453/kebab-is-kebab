@@ -85,7 +85,8 @@
 .itemEmoji { font-size: 1.5rem; flex-shrink: 0; width: 2rem; text-align: center; }
 .itemInfo { flex: 1; min-width: 0; }
 .itemName { font-size: 0.9rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.itemPrice { font-size: 0.82rem; color: var(--amber); margin-top: 0.15rem; font-family: var(--font-heading); letter-spacing: 0.04em; }
+.itemSel  { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; line-height: 1.4; }
+.itemPrice { font-size: 0.82rem; color: var(--amber); margin-top: 0.2rem; font-family: var(--font-heading); letter-spacing: 0.04em; }
 
 .qtyControl {
   display: flex; align-items: center; gap: 0;

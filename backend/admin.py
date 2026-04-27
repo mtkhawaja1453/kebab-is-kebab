@@ -5,7 +5,7 @@ All routes require the X-Admin-Token header matching ADMIN_SECRET in .env
 
 from fastapi import APIRouter, HTTPException, Header
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 import json, os
 from dotenv import load_dotenv
 
@@ -35,14 +35,27 @@ def write_menu(items: list) -> None:
 
 
 # ── Request / Response models ─────────────────────────────────────────────────
+class OptionChoicePayload(BaseModel):
+    id:        str
+    label:     str
+    price_add: float = 0.0
+
+class OptionGroupPayload(BaseModel):
+    id:             str
+    label:          str
+    required:       bool = False
+    max_selections: int  = 1
+    options:        List[OptionChoicePayload] = []
+
 class MenuItemPayload(BaseModel):
-    name:        str
-    description: str
-    price:       float
-    category:    str   # kebab | pizza | sides | drinks
-    emoji:       str
-    tag:         Optional[str] = None
-    available:   bool = True
+    name:          str
+    description:   str
+    price:         float
+    category:      str
+    emoji:         str
+    tag:           Optional[str] = None
+    available:     bool = True
+    option_groups: List[OptionGroupPayload] = []
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────

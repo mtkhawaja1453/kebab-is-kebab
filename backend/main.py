@@ -232,18 +232,35 @@ async def create_checkout_session(order: Order):
     total             = 0.0
 
     for line in order.items:
-        item       = menu_lookup[line.menu_item_id]
-        line_total = item.price * line.quantity
+        item      = menu_lookup[line.menu_item_id]
+        unit_price = item.price
+
+        # Add option group price adds
+        selections = line.selections or {}
+        sel_labels = []
+        for group in (item.option_groups or []):
+            chosen = selections.get(group.id, [])
+            for choice_id in chosen:
+                choice = next((c for c in group.options if c.id == choice_id), None)
+                if choice:
+                    unit_price += choice.price_add
+                    if choice.label not in sel_labels:
+                        sel_labels.append(choice.label)
+
+        line_total = unit_price * line.quantity
         total     += line_total
-        order_lines.append((item.name, line.quantity, item.price, line_total))
+        desc = item.description[:200]
+        if sel_labels:
+            desc += f" | {', '.join(sel_labels)}"
+        order_lines.append((item.name, line.quantity, unit_price, line_total))
         stripe_line_items.append({
             "price_data": {
                 "currency": "aud",
                 "product_data": {
                     "name": item.name,
-                    "description": item.description[:500],
+                    "description": desc[:500],
                 },
-                "unit_amount": int(item.price * 100),  # Stripe uses cents
+                "unit_amount": int(unit_price * 100),
             },
             "quantity": line.quantity,
         })

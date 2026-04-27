@@ -71,8 +71,106 @@ function LoginScreen({ onLogin }) {
 }
 
 // ── Item form (add / edit) ────────────────────────────────────────────────────
+function OptionGroupEditor({ groups, onChange }) {
+  const addGroup = () => {
+    onChange([...groups, {
+      id: `group_${Date.now()}`,
+      label: '',
+      required: false,
+      max_selections: 1,
+      options: []
+    }])
+  }
+
+  const updateGroup = (idx, field, value) => {
+    const next = [...groups]
+    next[idx] = { ...next[idx], [field]: value }
+    onChange(next)
+  }
+
+  const removeGroup = idx => onChange(groups.filter((_, i) => i !== idx))
+
+  const addOption = idx => {
+    const next = [...groups]
+    next[idx].options = [...next[idx].options, { id: `opt_${Date.now()}`, label: '', price_add: 0 }]
+    onChange(next)
+  }
+
+  const updateOption = (gIdx, oIdx, field, value) => {
+    const next = [...groups]
+    next[gIdx].options[oIdx] = { ...next[gIdx].options[oIdx], [field]: value }
+    onChange(next)
+  }
+
+  const removeOption = (gIdx, oIdx) => {
+    const next = [...groups]
+    next[gIdx].options = next[gIdx].options.filter((_, i) => i !== oIdx)
+    onChange(next)
+  }
+
+  return (
+    <div className={styles.optionGroupEditor}>
+      <div className={styles.ogHeader}>
+        <span className={styles.formSection} style={{ border: 'none', padding: 0, margin: 0 }}>Option Groups</span>
+        <button type="button" className={styles.addGroupBtn} onClick={addGroup}>+ Add Group</button>
+      </div>
+
+      {groups.length === 0 && (
+        <p className={styles.ogEmpty}>No option groups — item goes straight to cart on click.</p>
+      )}
+
+      {groups.map((group, gIdx) => (
+        <div key={gIdx} className={styles.ogGroup}>
+          <div className={styles.ogGroupHeader}>
+            <div className={styles.formRow} style={{ flex: 1 }}>
+              <div className={styles.field}>
+                <label>Group Label</label>
+                <input value={group.label} onChange={e => updateGroup(gIdx, 'label', e.target.value)} placeholder="e.g. Meat Option" required />
+              </div>
+              <div className={styles.field} style={{ maxWidth: 90 }}>
+                <label>Max picks</label>
+                <input type="number" min="1" max="20" value={group.max_selections} onChange={e => updateGroup(gIdx, 'max_selections', parseInt(e.target.value))} />
+              </div>
+            </div>
+            <label className={styles.checkboxLabel} style={{ flexShrink: 0 }}>
+              <input type="checkbox" checked={group.required} onChange={e => updateGroup(gIdx, 'required', e.target.checked)} />
+              Required
+            </label>
+            <button type="button" className={styles.removeGroupBtn} onClick={() => removeGroup(gIdx)}>✕</button>
+          </div>
+
+          <div className={styles.ogOptions}>
+            {group.options.map((opt, oIdx) => (
+              <div key={oIdx} className={styles.ogOption}>
+                <input
+                  value={opt.label}
+                  onChange={e => updateOption(gIdx, oIdx, 'label', e.target.value)}
+                  placeholder="Option name"
+                  className={styles.ogOptionInput}
+                />
+                <div className={styles.ogPriceWrap}>
+                  <span>+$</span>
+                  <input
+                    type="number" min="0" step="0.50"
+                    value={opt.price_add}
+                    onChange={e => updateOption(gIdx, oIdx, 'price_add', parseFloat(e.target.value) || 0)}
+                    className={styles.ogPriceInput}
+                  />
+                </div>
+                <button type="button" className={styles.removeOptBtn} onClick={() => removeOption(gIdx, oIdx)}>✕</button>
+              </div>
+            ))}
+            <button type="button" className={styles.addOptBtn} onClick={() => addOption(gIdx)}>+ Add Option</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function ItemForm({ initial, onSave, onCancel, loading }) {
-  const [form, setForm] = useState(initial || EMPTY_FORM)
+  const [form,   setForm]   = useState(initial || EMPTY_FORM)
+  const [groups, setGroups] = useState(initial?.option_groups || [])
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
@@ -80,9 +178,10 @@ function ItemForm({ initial, onSave, onCancel, loading }) {
     e.preventDefault()
     onSave({
       ...form,
-      price:    parseFloat(form.price),
-      tag:      form.tag.trim() || null,
-      available: form.available,
+      price:         parseFloat(form.price),
+      tag:           form.tag.trim() || null,
+      available:     form.available,
+      option_groups: groups,
     })
   }
 
@@ -129,6 +228,9 @@ function ItemForm({ initial, onSave, onCancel, loading }) {
           Available for ordering
         </label>
       </div>
+
+      <div className={styles.formSection} style={{ marginTop: '0.5rem' }}>Customisation</div>
+      <OptionGroupEditor groups={groups} onChange={setGroups} />
 
       <div className={styles.formActions}>
         <button type="button" className="btn-outline" onClick={onCancel}>Cancel</button>

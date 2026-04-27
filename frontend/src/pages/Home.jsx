@@ -165,7 +165,7 @@ function MenuPreview() {
   if (items.length === 0) return null
 
   return (
-    <section className={styles.menuPreview}>
+    <section id="menu-preview" className={styles.menuPreview}>
       <div ref={headerRef} className={`${styles.sectionHeader} fade-up`}>
         <span className="section-tag">What We Serve</span>
         <h2>Menu Highlights</h2>

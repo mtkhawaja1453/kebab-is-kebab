@@ -100,9 +100,10 @@ export default function Checkout() {
     setServerError('')
 
     const payload = {
-      items: items.map(({ item, quantity }) => ({
+      items: items.map(({ item, quantity, selections }) => ({
         menu_item_id: item.id,
         quantity,
+        selections: selections || {},
       })),
       customer_name:  form.name.trim(),
       customer_email: form.email.trim(),

@@ -189,3 +189,70 @@
   .itemGrid { grid-template-columns: 1fr; }
   .formRow { flex-direction: column; }
 }
+
+/* ── Option group editor ── */
+.optionGroupEditor {
+  display: flex; flex-direction: column; gap: 0.75rem;
+}
+.ogHeader {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.addGroupBtn {
+  background: none; border: 1px solid var(--border);
+  color: var(--amber); padding: 0.3rem 0.8rem;
+  border-radius: 3px; font-size: 0.8rem; cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.addGroupBtn:hover { border-color: var(--amber); background: rgba(232,160,32,0.08); }
+.ogEmpty { font-size: 0.83rem; color: var(--muted); font-style: italic; }
+
+.ogGroup {
+  border: 1px solid var(--border);
+  border-radius: 4px; overflow: hidden;
+}
+.ogGroupHeader {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.75rem; background: var(--dark);
+  border-bottom: 1px solid var(--border);
+}
+.removeGroupBtn {
+  background: none; border: none; cursor: pointer;
+  color: var(--muted); font-size: 0.85rem; padding: 0.25rem 0.5rem;
+  transition: color 0.2s; flex-shrink: 0;
+}
+.removeGroupBtn:hover { color: #e87070; }
+
+.ogOptions { padding: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.ogOption { display: flex; align-items: center; gap: 0.5rem; }
+.ogOptionInput {
+  flex: 1;
+  background: var(--dark); border: 1px solid var(--border);
+  color: var(--warm-white); border-radius: 3px;
+  padding: 0.5rem 0.75rem; font-family: var(--font-body); font-size: 0.88rem; outline: none;
+}
+.ogOptionInput:focus { border-color: var(--amber); }
+.ogPriceWrap {
+  display: flex; align-items: center; gap: 0.25rem;
+  font-size: 0.82rem; color: var(--muted); flex-shrink: 0;
+}
+.ogPriceInput {
+  width: 60px;
+  background: var(--dark); border: 1px solid var(--border);
+  color: var(--warm-white); border-radius: 3px;
+  padding: 0.5rem 0.4rem; font-family: var(--font-body); font-size: 0.88rem; outline: none;
+  text-align: center;
+}
+.ogPriceInput:focus { border-color: var(--amber); }
+.removeOptBtn {
+  background: none; border: none; cursor: pointer;
+  color: var(--muted); font-size: 0.75rem; padding: 0.25rem;
+  transition: color 0.15s; flex-shrink: 0;
+}
+.removeOptBtn:hover { color: #e87070; }
+.addOptBtn {
+  background: none; border: 1px dashed var(--border);
+  color: var(--muted); padding: 0.4rem 0.75rem;
+  border-radius: 3px; font-size: 0.78rem; cursor: pointer;
+  transition: border-color 0.2s, color 0.2s; align-self: flex-start;
+}
+.addOptBtn:hover { border-color: var(--amber); color: var(--amber); }
