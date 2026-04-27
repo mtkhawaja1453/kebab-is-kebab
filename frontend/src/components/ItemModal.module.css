@@ -19,7 +19,6 @@
   overflow: hidden;
 }
 
-
 @keyframes fadeIn  { from { opacity: 0; }                      to { opacity: 1; } }
 @keyframes slideUp { from { transform: translate(-50%, -46%); opacity: 0; } to { transform: translate(-50%, -50%); opacity: 1; } }
 
