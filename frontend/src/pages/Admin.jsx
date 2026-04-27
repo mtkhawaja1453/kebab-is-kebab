@@ -129,7 +129,13 @@ function OptionGroupEditor({ groups, onChange }) {
               </div>
               <div className={styles.field} style={{ maxWidth: 90 }}>
                 <label>Max picks</label>
-                <input type="number" min="1" max="20" value={group.max_selections} onChange={e => updateGroup(gIdx, 'max_selections', parseInt(e.target.value))} />
+                <input
+                  type="number"
+                  min="1"
+                  max={group.options.length || 1}
+                  value={Math.min(group.max_selections, group.options.length || 1)}
+                  onChange={e => updateGroup(gIdx, 'max_selections', Math.min(parseInt(e.target.value), group.options.length || 1))}
+                />
               </div>
             </div>
             <label className={styles.checkboxLabel} style={{ flexShrink: 0 }}>

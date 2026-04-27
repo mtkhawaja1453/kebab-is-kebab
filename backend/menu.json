@@ -13,7 +13,7 @@
         "id": "group_1777260918235",
         "label": "Meat option",
         "required": true,
-        "max_selections": 2,
+        "max_selections": 3,
         "options": [
           {
             "id": "opt_1777260924868",
@@ -29,6 +29,29 @@
             "id": "opt_1777260934484",
             "label": "Lamb",
             "price_add": 1.0
+          }
+        ]
+      },
+      {
+        "id": "group_1777261935216",
+        "label": "Sauce",
+        "required": false,
+        "max_selections": 1,
+        "options": [
+          {
+            "id": "opt_1777261939299",
+            "label": "BBQ",
+            "price_add": 0.0
+          },
+          {
+            "id": "opt_1777261943416",
+            "label": "Tomato",
+            "price_add": 0.0
+          },
+          {
+            "id": "opt_1777261946682",
+            "label": "Garlic",
+            "price_add": 0.0
           }
         ]
       }

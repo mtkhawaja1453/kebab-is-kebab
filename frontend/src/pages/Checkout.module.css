@@ -49,13 +49,21 @@
 .pickupBanner span { color: var(--muted); font-size: 0.75rem; }
 
 .summaryItem {
-  display: flex; align-items: center; gap: 0.6rem;
+  display: flex; align-items: flex-start; gap: 0.6rem;
   padding: 0.8rem 1.25rem;
   border-bottom: 1px solid var(--border);
   font-size: 0.88rem;
 }
+.summaryItemInfo {
+  display: flex; flex-direction: column; flex: 1; min-width: 0;
+}
+.summarySels {
+  font-size: 0.75rem; color: var(--muted);
+  margin-top: 0.15rem; line-height: 1.4;
+  padding-left: 0.75rem;
+}
 .summaryEmoji { font-size: 1.1rem; width: 1.5rem; text-align: center; flex-shrink: 0; }
-.summaryName { flex: 1; }
+.summaryName { } 
 .summaryQty { color: var(--muted); font-size: 0.8rem; flex-shrink: 0; }
 .summaryPrice { font-family: var(--font-heading); color: var(--amber); font-size: 1rem; flex-shrink: 0; }
 
@@ -180,4 +188,10 @@
   .summary { position: static; }
   .fieldRow { grid-template-columns: 1fr; }
   .formWrap { padding: 1.5rem; }
+}
+
+.summarySelGroup {
+  font-weight: 600;
+  color: var(--warm-white);
+  font-size: 0.72rem;
 }
