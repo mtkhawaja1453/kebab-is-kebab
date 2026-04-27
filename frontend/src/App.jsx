@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import { CartProvider } from './context/CartContext'
+import { AuthProvider } from './context/AuthContext'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import Home from './pages/Home'
@@ -11,6 +12,8 @@ import Checkout from './pages/Checkout'
 import OrderConfirmation from './pages/OrderConfirmation'
 import CancelRedirect from './pages/CancelRedirect'
 import Admin from './pages/Admin'
+import Login from './pages/Login'
+import Profile from './pages/Profile'
 
 // Scroll to top on every route change
 function ScrollToTop() {
@@ -21,6 +24,7 @@ function ScrollToTop() {
 
 export default function App() {
   return (
+    <AuthProvider>
     <CartProvider>
       <BrowserRouter>
         <ScrollToTop />
@@ -34,10 +38,13 @@ export default function App() {
           <Route path="/order-confirmation" element={<OrderConfirmation />} />
           <Route path="/payment-cancelled" element={<CancelRedirect />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/profile" element={<Profile />} />
           {/* Future routes: /order, /admin */}
         </Routes>
         <Footer />
       </BrowserRouter>
     </CartProvider>
+    </AuthProvider>
   )
 }
