@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useFadeUp } from '../hooks/useFadeUp'
+import { useState, useEffect } from 'react'
 import styles from './Home.module.css'
 
 /* ── Individual sections ─────────────────────────────────────────────────── */
@@ -129,35 +130,50 @@ function About() {
   )
 }
 
+function HighlightCard({ item, index }) {
+  const ref = useFadeUp(index * 100)
+  return (
+    <div key={item.id} ref={ref} className={`${styles.menuCard} fade-up`}>
+      <div className={styles.menuCardImg}>{item.emoji}</div>
+      <div className={styles.menuCardBody}>
+        <div className={styles.menuCardName}>{item.name}</div>
+        <div className={styles.menuCardFooter}>
+          <span className={styles.menuCardPrice}>${item.price.toFixed(2)}</span>
+          <span className={styles.menuCardTag}>{item.tag}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function MenuPreview() {
   const headerRef = useFadeUp()
-  const highlights = [
-    { emoji: '🌯', name: 'Classic Lamb Wrap', price: 'From $12', tag: 'Best Seller' },
-    { emoji: '🍕', name: 'Pide Pizza', price: 'From $14', tag: 'Fan Fave' },
-    { emoji: '🍟', name: 'Loaded Chips', price: 'From $6', tag: 'Crowd Pleaser' },
-  ]
+  const [items, setItems] = useState([])
+
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_URL || '/api'}/menu`)
+      .then(res => res.json())
+      .then(data => {
+        const highlights = data.items
+          .filter(item => item.tag && item.available)
+          .slice(0, 3)
+        setItems(highlights)
+      })
+      .catch(() => {})
+  }, [])
+
+  if (items.length === 0) return null
+
   return (
-    <section id="menu-preview" className={styles.menuPreview}>
+    <section className={styles.menuPreview}>
       <div ref={headerRef} className={`${styles.sectionHeader} fade-up`}>
         <span className="section-tag">What We Serve</span>
         <h2>Menu Highlights</h2>
       </div>
       <div className={styles.menuGrid}>
-        {highlights.map((item, i) => {
-          const ref = useFadeUp(i * 100)
-          return (
-            <div key={item.name} ref={ref} className={`${styles.menuCard} fade-up`}>
-              <div className={styles.menuCardImg}>{item.emoji}</div>
-              <div className={styles.menuCardBody}>
-                <div className={styles.menuCardName}>{item.name}</div>
-                <div className={styles.menuCardFooter}>
-                  <span className={styles.menuCardPrice}>{item.price}</span>
-                  <span className={styles.menuCardTag}>{item.tag}</span>
-                </div>
-              </div>
-            </div>
-          )
-        })}
+        {items.map((item, i) => (
+          <HighlightCard key={item.id} item={item} index={i} />
+        ))}
       </div>
       <div className={styles.menuCta}>
         <Link to="/menu" className="btn-primary">See Full Menu</Link>

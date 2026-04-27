@@ -1,10 +1,3 @@
-"""
-Kebab Is Kebab - FastAPI Backend
----------------------------------
-Run with:  uvicorn main:app --reload
-Docs at:   http://localhost:8000/docs
-"""
-
 from fastapi import FastAPI, HTTPException, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -15,7 +8,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 from models import Order, ContactMessage
-from data import MENU_ITEMS
+from menu_store import load_menu
+from admin import router as admin_router
 
 import resend
 
@@ -43,6 +37,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(admin_router)
 
 # ── CONFIG ────────────────────────────────────────────────────────────────────
 # Change this to update the estimated pickup time shown in confirmation emails.
@@ -204,7 +200,7 @@ def root():
 # ── MENU ──────────────────────────────────────────────────────────────────────
 @app.get("/api/menu", tags=["Menu"])
 def get_menu(category: str | None = None):
-    items = MENU_ITEMS
+    items = load_menu()
     if category:
         items = [i for i in items if i.category.value == category]
     return {"items": [i.model_dump() for i in items]}
@@ -212,7 +208,7 @@ def get_menu(category: str | None = None):
 
 @app.get("/api/menu/{item_id}", tags=["Menu"])
 def get_menu_item(item_id: int):
-    item = next((i for i in MENU_ITEMS if i.id == item_id), None)
+    item = next((i for i in load_menu() if i.id == item_id), None)
     if not item:
         raise HTTPException(status_code=404, detail="Menu item not found")
     return item.model_dump()
@@ -225,7 +221,7 @@ async def create_checkout_session(order: Order):
     Validate the order, store all order details in Stripe session metadata,
     then return a Stripe Checkout URL for the frontend to redirect to.
     """
-    menu_lookup = {i.id: i for i in MENU_ITEMS}
+    menu_lookup = {i.id: i for i in load_menu()}
     for line in order.items:
         if line.menu_item_id not in menu_lookup:
             raise HTTPException(status_code=400, detail=f"Menu item {line.menu_item_id} does not exist")
@@ -332,7 +328,7 @@ async def verify_order_session(session_id: str):
         }
 
     # Reconstruct order lines for the emails
-    menu_lookup = {i.id: i for i in MENU_ITEMS}
+    menu_lookup = {i.id: i for i in load_menu()}
     order_lines = []
     total       = 0.0
     for entry in meta["items"].split("|"):

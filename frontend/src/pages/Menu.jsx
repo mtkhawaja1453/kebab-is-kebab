@@ -10,6 +10,7 @@ const CATEGORIES = [
   { value: 'pizza', label: 'Pide Pizza' },
   { value: 'sides', label: 'Sides' },
   { value: 'drinks', label: 'Drinks' },
+  { value: 'other', label: 'Other' },
 ]
 
 function MenuCard({ item, index }) {

@@ -8,6 +8,7 @@ class Category(str, Enum):
     pizza = "pizza"
     sides = "sides"
     drinks = "drinks"
+    other = "other"
 
 
 class MenuItem(BaseModel):

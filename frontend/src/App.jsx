@@ -10,7 +10,7 @@ import CartDrawer from './components/CartDrawer'
 import Checkout from './pages/Checkout'
 import OrderConfirmation from './pages/OrderConfirmation'
 import CancelRedirect from './pages/CancelRedirect'
-
+import Admin from './pages/Admin'
 
 // Scroll to top on every route change
 function ScrollToTop() {
@@ -33,6 +33,7 @@ export default function App() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/order-confirmation" element={<OrderConfirmation />} />
           <Route path="/payment-cancelled" element={<CancelRedirect />} />
+          <Route path="/admin" element={<Admin />} />
           {/* Future routes: /order, /admin */}
         </Routes>
         <Footer />

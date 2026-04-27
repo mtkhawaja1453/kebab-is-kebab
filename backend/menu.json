@@ -1,0 +1,112 @@
+[
+  {
+    "id": 1,
+    "name": "Classic Lamb Kebab Wrap",
+    "description": "Tender marinated lamb, fresh salad, house garlic sauce, wrapped in warm Turkish bread.",
+    "price": 12.0,
+    "category": "kebab",
+    "emoji": "🌯",
+    "tag": "Best Seller",
+    "available": true
+  },
+  {
+    "id": 2,
+    "name": "Chicken Kebab Wrap",
+    "description": "Juicy chargrilled chicken, crisp lettuce, tomato, onion, and your choice of sauce.",
+    "price": 12.0,
+    "category": "kebab",
+    "tag": "Popular",
+    "emoji": "🌯",
+    "available": true
+  },
+  {
+    "id": 3,
+    "name": "Mixed Meat Kebab",
+    "description": "The best of both worlds — a generous mix of lamb and chicken with all the trimmings.",
+    "price": 14.0,
+    "category": "kebab",
+    "tag": "Signature",
+    "emoji": "🌯",
+    "available": true
+  },
+  {
+    "id": 4,
+    "name": "Kebab Plate",
+    "description": "Generous serve of meat, garden salad, hummus, and warm pita bread on the side.",
+    "price": 16.0,
+    "category": "kebab",
+    "tag": "Value",
+    "emoji": "🥙",
+    "available": true
+  },
+  {
+    "id": 5,
+    "name": "Lamb Pide Pizza",
+    "description": "Turkish flatbread loaded with spiced lamb, fresh vegetables, cheese and house sauce.",
+    "price": 14.0,
+    "category": "pizza",
+    "tag": "Fan Fave",
+    "emoji": "🍕",
+    "available": true
+  },
+  {
+    "id": 6,
+    "name": "Chicken Pide Pizza",
+    "description": "Crispy pide base topped with marinated chicken, capsicum, onion and melted cheese.",
+    "price": 14.0,
+    "category": "pizza",
+    "tag": null,
+    "emoji": "🍕",
+    "available": true
+  },
+  {
+    "id": 7,
+    "name": "Loaded Chips",
+    "description": "Always crunchy, always seasoned — never mouldy. Drizzled with your favourite sauce.",
+    "price": 6.0,
+    "category": "sides",
+    "tag": "Crowd Pleaser",
+    "emoji": "🍟",
+    "available": true
+  },
+  {
+    "id": 8,
+    "name": "Garlic Bread",
+    "description": "Toasted Turkish bread brushed with house garlic butter. Simple. Perfect.",
+    "price": 4.0,
+    "category": "sides",
+    "tag": null,
+    "emoji": "🥖",
+    "available": true
+  },
+  {
+    "id": 9,
+    "name": "Can of Soft Drink",
+    "description": "Coca-Cola, Sprite, or Fanta — ice cold.",
+    "price": 3.0,
+    "category": "drinks",
+    "tag": null,
+    "emoji": "🥤",
+    "available": true
+  },
+  {
+    "id": 10,
+    "name": "Bottled Water",
+    "description": "600ml chilled water.",
+    "price": 2.5,
+    "category": "drinks",
+    "tag": null,
+    "emoji": "💧",
+    "available": false
+  },
+  {
+    "id": 11,
+    "name": "TEST ITEM",
+    "description": "This is a test item for the menu",
+    "price": 145.0,
+    "category": "sides",
+    "emoji": "🍕",
+    "tag": null,
+    "available": true
+  }
+]
