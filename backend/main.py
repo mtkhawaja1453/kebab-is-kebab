@@ -16,6 +16,9 @@ from models import OrderItem
 import resend
 from supabase import create_client
 
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
 load_dotenv()
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
@@ -47,6 +50,9 @@ app.add_middleware(
 )
 
 app.include_router(admin_router)
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
 
 # ── CONFIG ────────────────────────────────────────────────────────────────────
 # Change this to update the estimated pickup time shown in confirmation emails.
@@ -502,6 +508,7 @@ async def verify_order_session(session_id: str):
 
 # ── CONTACT ───────────────────────────────────────────────────────────────────
 @app.post("/api/contact", tags=["Contact"])
+@limiter.limit("5/minute")
 async def submit_contact(msg: ContactMessage):
     html_body = f"""
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#f9f9f9;border-radius:8px;">
