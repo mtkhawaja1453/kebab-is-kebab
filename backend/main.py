@@ -14,12 +14,18 @@ from admin import router as admin_router
 from models import OrderItem
 
 import resend
+from supabase import create_client
 
 load_dotenv()
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 resend.api_key = os.getenv("RESEND_API_KEY")
+
+supabase_client = create_client(
+    os.getenv("SUPABASE_URL", ""),
+    os.getenv("SUPABASE_SERVICE_ROLE_KEY", ""),
+) if os.getenv("SUPABASE_URL") else None
 
 app = FastAPI(
     title="Kebab Is Kebab API",
@@ -328,6 +334,7 @@ async def create_checkout_session(order: Order):
                 "pickup_fmt":      pickup_fmt,
                 "notes":           order.notes or "",
                 "items":           items_meta,
+                "user_id":         order.user_id or "",
             },
         )
     except stripe.StripeError as e:
@@ -440,6 +447,45 @@ async def verify_order_session(session_id: str):
     except Exception as e:
         print(f"⚠️  Email send failed for {order_number}: {e}")
         # Don't fail the request — order is paid, just log it
+        
+    user_id = meta.get("user_id") or None
+    if supabase_client and user_id:
+        try:     
+            def _parse_sel(entry):
+                parts = entry.split(":")
+                sel_str = parts[2] if len(parts) > 2 else ""
+                selections = {}
+                if sel_str:
+                    for seg in sel_str.split(";"):
+                        if "=" in seg:
+                            gid, cids = seg.split("=", 1)
+                            selections[gid] = cids.split(",")
+                return selections          
+             
+            order_data = {
+                "user_id":      user_id,
+                "order_number": order_number,
+                "total":        total,
+                "pickup_time":  meta["pickup_time"],
+                "pickup_fmt":   meta["pickup_fmt"],
+                "notes":        meta.get("notes") or None,
+                "status":       "confirmed",
+                "items": [
+                    {
+                        "menu_item_id": int(e.split(":")[0]),
+                        "name":         menu_lookup[int(e.split(":")[0])].name,
+                        "emoji":        menu_lookup[int(e.split(":")[0])].emoji,
+                        "quantity":     int(e.split(":")[1]),
+                        "line_total":   order_lines[i][3],
+                        "sel_labels":   order_lines[i][4],
+                        "selections":   _parse_sel(e),
+                    }
+                    for i, e in enumerate(meta["items"].split("|"))
+                ],
+            }
+            supabase_client.table("orders").insert(order_data).execute()
+        except Exception as e:
+            print(f"⚠️ Failed to save order to Supabase: {e}")
 
     print(f"✅ Order {order_number} confirmed — ${total:.2f} — {meta['customer_name']}")
 

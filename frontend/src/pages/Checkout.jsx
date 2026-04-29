@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart, linePrice } from '../context/CartContext'
 import { useFadeUp } from '../hooks/useFadeUp'
-import styles from './Checkout.module.css'
 import { BASE } from '../api'
+import { useAuth } from '../context/AuthContext'
+
+import styles from './Checkout.module.css'
 
 // ── Validation ────────────────────────────────────────────────────────────────
 function validate(form) {
@@ -46,6 +48,7 @@ function getPickupSlots() {
 
 export default function Checkout() {
   const { items, totalPrice } = useCart()
+  const { user, profile } = useAuth()
   const navigate  = useNavigate()
   const headerRef = useFadeUp()
   const formRef   = useFadeUp(100)
@@ -59,6 +62,16 @@ export default function Checkout() {
   const [serverError, setServerError] = useState('')
 
   const slots = getPickupSlots()
+  useEffect(() => {
+    if (profile || user) {
+      setForm(f => ({
+        ...f,
+        name:  f.name  || profile?.full_name || '',
+        email: f.email || user?.email        || '',
+        phone: f.phone || profile?.phone     || '',
+      }))
+    }
+  }, [profile, user])
 
   if (items.length === 0) {
     return (
@@ -110,6 +123,7 @@ export default function Checkout() {
       customer_phone: form.phone.trim(),
       pickup_time:    form.pickupTime,
       notes:          form.notes.trim() || null,
+      user_id:        user?.id || null,
     }
 
     try {

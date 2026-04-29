@@ -1,0 +1,126 @@
+.page {
+  min-height: 100vh;
+  padding: 7rem 5rem 5rem;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;
+}
+.header h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 900; margin: 0.25rem 0 0;
+}
+
+/* ── Tabs ── */
+.tabs {
+  display: flex; gap: 0; margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border);
+}
+.tab {
+  background: none; border: none; cursor: pointer;
+  color: var(--muted); font-family: var(--font-body);
+  font-size: 0.9rem; font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.2s, border-color 0.2s;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.tab:hover { color: var(--warm-white); }
+.tabActive { color: var(--amber) !important; border-bottom-color: var(--amber) !important; }
+.tabBadge {
+  background: var(--amber); color: var(--dark);
+  border-radius: 99px; font-size: 0.7rem; font-weight: 700;
+  padding: 0.1rem 0.45rem; line-height: 1.4;
+}
+
+/* ── Section ── */
+.section { animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.sectionDesc { color: var(--muted); font-size: 0.88rem; margin-bottom: 1.5rem; }
+
+/* ── Form ── */
+.form { display: flex; flex-direction: column; gap: 1.1rem; max-width: 480px; }
+.field { display: flex; flex-direction: column; gap: 0.35rem; }
+.field label {
+  font-size: 0.75rem; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+}
+.field input {
+  background: var(--card-bg); border: 1px solid var(--border);
+  color: var(--warm-white); border-radius: 3px;
+  padding: 0.75rem 1rem; font-family: var(--font-body); font-size: 0.92rem;
+  outline: none; transition: border-color 0.2s;
+}
+.field input:focus { border-color: var(--amber); }
+.field input::placeholder { color: var(--muted); }
+.disabledInput { opacity: 0.5; cursor: not-allowed; }
+.fieldHint { font-size: 0.72rem; color: var(--muted); }
+
+/* ── Order list ── */
+.orderList { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.orderCard {
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: 6px; overflow: hidden;
+  transition: border-color 0.2s;
+}
+.orderCard:hover { border-color: rgba(232,160,32,0.3); }
+
+.orderHeader {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.25rem; cursor: pointer;
+}
+.orderMeta { display: flex; flex-direction: column; gap: 0.2rem; }
+.orderNumber { font-family: var(--font-heading); font-size: 1.1rem; color: var(--amber); letter-spacing: 0.06em; }
+.orderDate { font-size: 0.78rem; color: var(--muted); }
+.orderRight { display: flex; align-items: center; gap: 1rem; }
+.orderTotal { font-family: var(--font-heading); font-size: 1.1rem; }
+.orderChevron { font-size: 0.7rem; color: var(--muted); }
+
+.orderBody { border-top: 1px solid var(--border); padding: 1rem 1.25rem; }
+.orderItem {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.5rem 0; border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+.orderItem:last-of-type { border-bottom: none; }
+.orderItemEmoji { font-size: 1.1rem; flex-shrink: 0; }
+.orderItemInfo { flex: 1; min-width: 0; }
+.orderItemName { display: block; }
+.orderItemSels { display: block; font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
+.orderItemQty { color: var(--muted); font-size: 0.8rem; flex-shrink: 0; }
+.orderItemPrice { font-family: var(--font-heading); color: var(--amber); font-size: 1rem; flex-shrink: 0; }
+
+.reorderBtn {
+  margin-top: 1rem;
+  background: none; border: 1px solid var(--border);
+  color: var(--warm-white); padding: 0.5rem 1.1rem;
+  border-radius: 3px; font-family: var(--font-body);
+  font-size: 0.83rem; cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.reorderBtn:hover { border-color: var(--amber); color: var(--amber); }
+
+/* ── States ── */
+.center { display: flex; justify-content: center; padding: 3rem; }
+.spinner {
+  width: 36px; height: 36px; border: 3px solid var(--border);
+  border-top-color: var(--amber); border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty {
+  text-align: center; padding: 3rem; color: var(--muted);
+  display: flex; flex-direction: column; align-items: center; gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .page { padding: 6rem 1.5rem 3rem; }
+}

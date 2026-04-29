@@ -9,6 +9,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const { totalItems, setIsOpen } = useCart()
   const location = useLocation()
+  const { user } = useAuth()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)
@@ -33,6 +34,14 @@ export default function Navbar() {
         {/* <li><Link to="/menu" className={styles.link}>Menu</Link></li> */}
         <li><a href="/#reviews" className={styles.link}>Reviews</a></li>
         <li><a href="/#find-us" className={styles.link}>Find Us</a></li>
+        <li>
+          <Link
+            to={user ? '/profile' : '/login'}
+            className={styles.link}
+          >
+            {user ? '👤 Profile' : 'Sign In'}
+          </Link>
+        </li>
         <li>
           <button className={styles.cartBtn} onClick={() => setIsOpen(true)} aria-label="Open cart">
             🛒

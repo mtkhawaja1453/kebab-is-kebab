@@ -50,6 +50,7 @@ class Order(BaseModel):
     customer_phone: str
     pickup_time:    str
     notes:          Optional[str] = None
+    user_id:        Optional[str] = None 
 
 
 class ContactMessage(BaseModel):
