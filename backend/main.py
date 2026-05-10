@@ -16,8 +16,9 @@ from models import OrderItem
 import resend
 from supabase import create_client
 
-from slowapi import Limiter
+from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 load_dotenv()
 
@@ -53,6 +54,7 @@ app.include_router(admin_router)
 
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # ── CONFIG ────────────────────────────────────────────────────────────────────
 # Change this to update the estimated pickup time shown in confirmation emails.
@@ -235,7 +237,8 @@ def get_menu_item(item_id: int):
 
 # ── ORDERS: Create Stripe Checkout Session ────────────────────────────────────
 @app.post("/api/orders/create-session", tags=["Orders"])
-async def create_checkout_session(order: Order):
+@limiter.limit("10/minute")
+async def create_checkout_session(request: Request, order: Order):
     """
     Validate the order, store all order details in Stripe session metadata,
     then return a Stripe Checkout URL for the frontend to redirect to.
@@ -323,7 +326,6 @@ async def create_checkout_session(order: Order):
     items_meta = "|".join(encode_item(line) for line in order.items)
 
     try:
-        print(f"DEBUG success_url: {FRONTEND_URL}/order-confirmation?session_id={{CHECKOUT_SESSION_ID}}")
         session = stripe.checkout.Session.create(
             payment_method_types=["card"],
             line_items=stripe_line_items,
@@ -444,6 +446,7 @@ async def verify_order_session(session_id: str):
         customer_phone=meta["customer_phone"],
         pickup_time=meta["pickup_time"],
         notes=meta["notes"] or None,
+        user_id=meta.get("user_id") or None,
     )
 
     try:
@@ -451,7 +454,8 @@ async def verify_order_session(session_id: str):
         # Mark emails as sent in Stripe metadata
         stripe.checkout.Session.modify(session_id, metadata={**meta, "emails_sent": "true"})
     except Exception as e:
-        print(f"⚠️  Email send failed for {order_number}: {e}")
+        # print(f"⚠️  Email send failed for {order_number}: {e}")
+        pass
         # Don't fail the request — order is paid, just log it
         
     user_id = meta.get("user_id") or None
@@ -491,9 +495,10 @@ async def verify_order_session(session_id: str):
             }
             supabase_client.table("orders").insert(order_data).execute()
         except Exception as e:
-            print(f"⚠️ Failed to save order to Supabase: {e}")
+            # print(f"⚠️ Failed to save order to Supabase: {e}")
+            pass
 
-    print(f"✅ Order {order_number} confirmed — ${total:.2f} — {meta['customer_name']}")
+    # print(f"✅ Order {order_number} confirmed — ${total:.2f} — {meta['customer_name']}")
 
     return {
         "success":          True,
@@ -509,7 +514,7 @@ async def verify_order_session(session_id: str):
 # ── CONTACT ───────────────────────────────────────────────────────────────────
 @app.post("/api/contact", tags=["Contact"])
 @limiter.limit("5/minute")
-async def submit_contact(msg: ContactMessage):
+async def submit_contact(request: Request, msg: ContactMessage):
     html_body = f"""
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#f9f9f9;border-radius:8px;">
       <div style="background:#e8a020;padding:16px 24px;border-radius:6px 6px 0 0;">
@@ -534,7 +539,7 @@ async def submit_contact(msg: ContactMessage):
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
-        print(f"❌ Email send failed: {e}")
+        # print(f"❌ Email send failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to send email. Check your GMAIL_APP_PASSWORD in .env.")
 
     return {"success": True, "message": "Thanks! We'll be in touch soon."}

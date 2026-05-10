@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import styles from './Navbar.module.css'
@@ -8,8 +8,21 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const { totalItems, setIsOpen } = useCart()
-  const location = useLocation()
   const { user } = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  const handleNavClick = (e, sectionId) => {
+    e.preventDefault()
+    if (location.pathname === '/') {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' })
+    } else {
+      navigate('/')
+      setTimeout(() => {
+        document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' })
+      }, 300)
+    }
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)
@@ -29,11 +42,10 @@ export default function Navbar() {
       </button>
 
       <ul className={`${styles.links} ${menuOpen ? styles.open : ''}`}>
-        <li><a href="/#about" className={styles.link}>Our Story</a></li>
-        <li><a href="/#menu-preview" className={styles.link}>Menu</a></li>
-        {/* <li><Link to="/menu" className={styles.link}>Menu</Link></li> */}
-        <li><a href="/#reviews" className={styles.link}>Reviews</a></li>
-        <li><a href="/#find-us" className={styles.link}>Find Us</a></li>
+        <li><a href="/#about" className={styles.link} onClick={e => handleNavClick(e, 'about')}>Our Story</a></li>
+        <li><a href="/#menu-preview" className={styles.link} onClick={e => handleNavClick(e, 'menu-preview')}>Menu</a></li>
+        <li><a href="/#reviews" className={styles.link} onClick={e => handleNavClick(e, 'reviews')}>Reviews</a></li>
+        <li><a href="/#find-us" className={styles.link} onClick={e => handleNavClick(e, 'find-us')}>Find Us</a></li>
         <li>
           <Link
             to={user ? '/profile' : '/login'}

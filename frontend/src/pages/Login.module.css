@@ -96,3 +96,15 @@
   display: flex; align-items: center; justify-content: center;
   margin: 0 auto 1.25rem;
 }
+
+.forgotBtn {
+  background: none; border: none; cursor: pointer;
+  color: var(--muted); font-size: 0.78rem;
+  text-decoration: underline; padding: 0;
+  transition: color 0.2s;
+}
+.forgotBtn:hover { color: var(--amber); }
+
+.fieldHint {
+  font-size: 0.72rem; color: var(--muted); margin-top: 0.1rem;
+}

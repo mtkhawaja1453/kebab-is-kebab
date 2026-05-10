@@ -8,10 +8,10 @@ export default function Login() {
   const location  = useLocation()
   const from      = location.state?.from || '/'
 
-  const [mode,   setMode]   = useState('login')  // login | signup
-  const [form,   setForm]   = useState({ name: '', email: '', password: '' })
-  const [error,  setError]  = useState('')
-  const [status, setStatus] = useState('idle')   // idle | loading | success
+  const [mode,     setMode]     = useState('login')  // login | signup | reset
+  const [form,     setForm]     = useState({ name: '', email: '', password: '', confirm: '' })
+  const [error,    setError]    = useState('')
+  const [status,   setStatus]   = useState('idle')   // idle | loading | success
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
@@ -20,7 +20,26 @@ export default function Login() {
     setStatus('loading')
     setError('')
 
+    if (mode === 'reset') {
+      const { error } = await supabase.auth.resetPasswordForEmail(form.email, {
+        redirectTo: `${window.location.origin}/profile`,
+      })
+      if (error) { setError(error.message); setStatus('idle'); return }
+      setStatus('success')
+      return
+    }
+
     if (mode === 'signup') {
+      // Client-side validation
+      if (form.password.length < 8) {
+        setError('Password must be at least 8 characters.')
+        setStatus('idle'); return
+      }
+      if (form.password !== form.confirm) {
+        setError('Passwords do not match.')
+        setStatus('idle'); return
+      }
+
       const { error } = await supabase.auth.signUp({
         email:    form.email,
         password: form.password,
@@ -29,14 +48,32 @@ export default function Login() {
           emailRedirectTo: `${window.location.origin}/profile`,
         },
       })
-      if (error) { setError(error.message); setStatus('idle'); return }
+      if (error) {
+        // Supabase returns a generic message for existing emails for security
+        // but we can check for it specifically
+        if (error.message.toLowerCase().includes('already registered') ||
+            error.message.toLowerCase().includes('already exists') ||
+            error.status === 400) {
+          setError('An account with this email already exists. Try signing in instead.')
+        } else {
+          setError(error.message)
+        }
+        setStatus('idle'); return
+      }
       setStatus('success')
     } else {
       const { error } = await supabase.auth.signInWithPassword({
         email:    form.email,
         password: form.password,
       })
-      if (error) { setError(error.message); setStatus('idle'); return }
+      if (error) {
+        if (error.message.toLowerCase().includes('invalid')) {
+          setError('Incorrect email or password.')
+        } else {
+          setError(error.message)
+        }
+        setStatus('idle'); return
+      }
       navigate(from, { replace: true })
     }
   }
@@ -55,12 +92,16 @@ export default function Login() {
       <main className={styles.page}>
         <div className={styles.card}>
           <div className={styles.successIcon}>✓</div>
-          <h2 className={styles.title}>Check your email</h2>
+          <h2 className={styles.title}>
+            {mode === 'reset' ? 'Check your email' : 'Verify your email'}
+          </h2>
           <p className={styles.sub}>
-            We sent a confirmation link to <strong>{form.email}</strong>.
-            Click it to activate your account.
+            {mode === 'reset'
+              ? <>We sent a password reset link to <strong>{form.email}</strong>. Check your inbox.</>
+              : <>If <strong>{form.email}</strong> isn't already registered, we've sent a confirmation link. Check your inbox — if nothing arrives within a minute, you may already have an account. <button onClick={() => { setMode('login'); setStatus('idle') }} style={{ color: 'var(--amber)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Try signing in instead.</button></>
+            }
           </p>
-          <button className="btn-outline" onClick={() => setMode('login') || setStatus('idle')}>
+          <button className="btn-outline" onClick={() => { setMode('login'); setStatus('idle') }}>
             Back to Login
           </button>
         </div>
@@ -113,29 +154,58 @@ export default function Login() {
               placeholder="jane@example.com" required
             />
           </div>
-          <div className={styles.field}>
-            <label>Password</label>
-            <input
-              type="password" value={form.password}
-              onChange={e => set('password', e.target.value)}
-              placeholder="········" required minLength={6}
-            />
-          </div>
+          {mode !== 'reset' && (
+            <div className={styles.field}>
+              <label>Password</label>
+              <input
+                type="password" value={form.password}
+                onChange={e => set('password', e.target.value)}
+                placeholder="········" required minLength={8}
+              />
+              {mode === 'signup' && (
+                <span className={styles.fieldHint}>At least 8 characters</span>
+              )}
+            </div>
+          )}
+          {mode === 'signup' && (
+            <div className={styles.field}>
+              <label>Confirm Password</label>
+              <input
+                type="password" value={form.confirm}
+                onChange={e => set('confirm', e.target.value)}
+                placeholder="········" required
+              />
+            </div>
+          )}
+          {mode === 'login' && (
+            <div style={{ textAlign: 'right', marginTop: '-0.5rem' }}>
+              <button
+                type="button"
+                onClick={() => { setMode('reset'); setError('') }}
+                className={styles.forgotBtn}
+              >
+                Forgot password?
+              </button>
+            </div>
+          )}
 
           {error && <p className={styles.error}>{error}</p>}
 
           <button type="submit" className="btn-primary" disabled={status === 'loading'} style={{ width: '100%' }}>
-            {status === 'loading'
-              ? 'Please wait…'
-              : mode === 'login' ? 'Sign In' : 'Create Account'}
+            {status === 'loading' ? 'Please wait…'
+              : mode === 'login' ? 'Sign In'
+              : mode === 'signup' ? 'Create Account'
+              : 'Send Reset Link'}
           </button>
         </form>
 
         <p className={styles.toggle}>
-          {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
-          <button onClick={() => { setMode(m => m === 'login' ? 'signup' : 'login'); setError('') }}>
-            {mode === 'login' ? 'Sign up' : 'Sign in'}
-          </button>
+          {mode === 'reset'
+            ? <button onClick={() => { setMode('login'); setError('') }}>← Back to Sign In</button>
+            : mode === 'login'
+            ? <>Don't have an account? <button onClick={() => { setMode('signup'); setError('') }}>Sign up</button></>
+            : <>Already have an account? <button onClick={() => { setMode('login'); setError('') }}>Sign in</button></>
+          }
         </p>
       </div>
     </main>
