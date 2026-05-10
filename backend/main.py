@@ -459,7 +459,7 @@ async def verify_order_session(session_id: str):
         # Don't fail the request — order is paid, just log it
         
     user_id = meta.get("user_id") or None
-    if supabase_client and user_id:
+    if supabase_client:
         try:     
             def _parse_sel(entry):
                 parts = entry.split(":")
