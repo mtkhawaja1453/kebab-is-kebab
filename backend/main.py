@@ -20,6 +20,8 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
+from hours_store import read_hours
+
 load_dotenv()
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
@@ -234,6 +236,11 @@ def get_menu_item(item_id: int):
         raise HTTPException(status_code=404, detail="Menu item not found")
     return item.model_dump()
 
+# ── HOURS ─────────────────────────────────────────────────────────────────────
+@app.get("/api/hours", tags=["Hours"])
+def get_hours():
+    """Return store opening hours — used by frontend to generate pickup slots."""
+    return {"hours": read_hours()}
 
 # ── ORDERS: Create Stripe Checkout Session ────────────────────────────────────
 @app.post("/api/orders/create-session", tags=["Orders"])
@@ -480,11 +487,15 @@ async def verify_order_session(session_id: str):
                 "pickup_fmt":   meta["pickup_fmt"],
                 "notes":        meta.get("notes") or None,
                 "status":       "confirmed",
+                "customer_name":  meta.get("customer_name"),
+                "customer_email": meta.get("customer_email"),
+                "customer_phone": meta.get("customer_phone"),
                 "items": [
                     {
                         "menu_item_id": int(e.split(":")[0]),
                         "name":         menu_lookup[int(e.split(":")[0])].name,
                         "emoji":        menu_lookup[int(e.split(":")[0])].emoji,
+                        "category":     menu_lookup[int(e.split(":")[0])].category.value,
                         "quantity":     int(e.split(":")[1]),
                         "line_total":   order_lines[i][3],
                         "sel_labels":   order_lines[i][4],

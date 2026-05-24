@@ -1,0 +1,54 @@
+.page { display: flex; flex-direction: column; gap: 1.25rem; max-width: 640px; }
+.desc { font-size: 0.88rem; color: var(--muted); line-height: 1.6; }
+
+.presets { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.presetsLabel { font-size: 0.78rem; color: var(--muted); }
+.presetBtn {
+  background: none; border: 1px solid var(--border);
+  color: var(--muted); padding: 0.35rem 0.85rem;
+  border-radius: 3px; font-size: 0.78rem; cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.presetBtn:hover { border-color: var(--amber); color: var(--amber); }
+
+.dayList { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.dayRow {
+  display: flex; align-items: center; gap: 1rem;
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: 6px; padding: 0.85rem 1.25rem;
+  transition: opacity 0.2s;
+}
+.dayRowClosed { opacity: 0.5; }
+
+.dayName { width: 100px; font-weight: 500; flex-shrink: 0; }
+
+.closedToggle {
+  display: flex; align-items: center; gap: 0.5rem;
+  cursor: pointer; flex-shrink: 0;
+}
+.closedToggle input { width: 16px; height: 16px; accent-color: var(--amber); cursor: pointer; }
+.toggleOn  { font-size: 0.82rem; color: #4caf7d; font-weight: 600; }
+.toggleOff { font-size: 0.82rem; color: var(--muted); }
+
+.timePickers { display: flex; align-items: center; gap: 0.75rem; flex: 1; }
+.timeField { display: flex; flex-direction: column; gap: 0.2rem; }
+.timeField label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.timeInput {
+  background: var(--dark); border: 1px solid var(--border);
+  color: var(--warm-white); border-radius: 3px;
+  padding: 0.4rem 0.6rem; font-family: var(--font-body); font-size: 0.88rem;
+  outline: none; transition: border-color 0.2s;
+}
+.timeInput:focus { border-color: var(--amber); }
+.timeSep { color: var(--muted); font-size: 1rem; }
+
+.error { color: #e87070; font-size: 0.85rem; }
+
+.center { display: flex; justify-content: center; padding: 3rem; }
+.spinner {
+  width: 36px; height: 36px; border: 3px solid var(--border);
+  border-top-color: var(--amber); border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }

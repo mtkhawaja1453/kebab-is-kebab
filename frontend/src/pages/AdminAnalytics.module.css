@@ -1,0 +1,79 @@
+.page { display: flex; flex-direction: column; gap: 1.5rem; }
+
+/* ── Toolbar ── */
+.toolbar { display: flex; align-items: center; gap: 0.5rem; }
+.toolbarLabel { font-size: 0.82rem; color: var(--muted); margin-right: 0.25rem; }
+.dayBtn {
+  background: var(--card-bg); border: 1px solid var(--border);
+  color: var(--muted); padding: 0.35rem 0.85rem;
+  border-radius: 99px; font-size: 0.82rem; cursor: pointer;
+  transition: all 0.2s;
+}
+.dayBtn:hover { border-color: var(--amber); color: var(--amber); }
+.dayBtnActive { background: var(--amber) !important; border-color: var(--amber) !important; color: var(--dark) !important; font-weight: 600; }
+
+/* ── Stats ── */
+.statsGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.statCard {
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: 6px; padding: 1.5rem; text-align: center;
+}
+.statValue { font-family: var(--font-heading); font-size: 2.2rem; color: var(--amber); letter-spacing: 0.04em; line-height: 1; }
+.statLabel { font-size: 0.72rem; color: var(--muted); margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 0.1em; }
+.statSub { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; }
+
+/* ── Repeat customer card ── */
+.repeatCard {
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: 6px; padding: 1.25rem 1.5rem;
+}
+.repeatGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 1rem; }
+.repeatStat { text-align: center; }
+.repeatValue { font-family: var(--font-heading); font-size: 1.8rem; color: var(--amber); }
+.repeatLabel { font-size: 0.72rem; color: var(--muted); margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* ── Charts grid ── */
+.chartsGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.chartCard {
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: 6px; padding: 1.25rem 1.5rem;
+}
+.chartCardWide {
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: 6px; padding: 1.25rem 1.5rem;
+}
+.chartTitle { font-size: 0.9rem; font-weight: 600; margin-bottom: 1.25rem; color: var(--warm-white); }
+
+/* ── Bar chart ── */
+.barChart { display: flex; flex-direction: column; gap: 0.65rem; }
+.barRow { display: flex; align-items: center; gap: 0.75rem; }
+.barLabel {
+  width: 175px; flex-shrink: 0; color: var(--muted);
+  font-size: 0.78rem; text-align: left;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.barTrack { flex: 1; height: 10px; background: var(--border); border-radius: 99px; overflow: hidden; min-width: 0; }
+.barFill { height: 100%; border-radius: 99px; transition: width 0.6s ease; min-width: 2px; }
+.barValue { width: 65px; flex-shrink: 0; color: var(--warm-white); font-size: 0.82rem; text-align: right; font-family: var(--font-heading); letter-spacing: 0.02em; }
+
+/* ── Donut chart ── */
+.donut { display: flex; align-items: center; gap: 1.5rem; }
+.donutLegend { display: flex; flex-direction: column; gap: 0.5rem; }
+.legendRow { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; }
+.legendDot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.legendLabel { flex: 1; color: var(--muted); }
+.legendValue { font-family: var(--font-heading); color: var(--warm-white); font-size: 0.85rem; }
+
+/* ── States ── */
+.center { display: flex; justify-content: center; padding: 3rem; }
+.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--amber); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.error { color: #e87070; font-size: 0.85rem; }
+.empty { color: var(--muted); font-size: 0.85rem; font-style: italic; }
+
+@media (max-width: 900px) {
+  .statsGrid { grid-template-columns: 1fr 1fr; }
+  .chartsGrid { grid-template-columns: 1fr; }
+  .repeatGrid { grid-template-columns: repeat(2, 1fr); }
+  .barLabel { width: 120px; }
+}

@@ -21,14 +21,19 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     // onAuthStateChange fires immediately with current session
     // so we use it as the single source of truth
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-        setUser(session?.user ?? null)
-        if (session?.user) {
-        fetchProfile(session.user.id)
-        } else {
-        setProfile(null)
-        }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Don't log user in during password recovery flow
+      if (event === 'PASSWORD_RECOVERY') {
         setLoading(false)
+        return
+      }
+      setUser(session?.user ?? null)
+      if (session?.user) {
+        fetchProfile(session.user.id)
+      } else {
+        setProfile(null)
+      }
+      setLoading(false)
     })
 
     return () => subscription.unsubscribe()

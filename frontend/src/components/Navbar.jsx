@@ -9,6 +9,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const { totalItems, setIsOpen } = useCart()
   const { user } = useAuth()
+  const { pathname } = useLocation()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -46,14 +47,13 @@ export default function Navbar() {
         <li><a href="/#menu-preview" className={styles.link} onClick={e => handleNavClick(e, 'menu-preview')}>Menu</a></li>
         <li><a href="/#reviews" className={styles.link} onClick={e => handleNavClick(e, 'reviews')}>Reviews</a></li>
         <li><a href="/#find-us" className={styles.link} onClick={e => handleNavClick(e, 'find-us')}>Find Us</a></li>
-        <li>
-          <Link
-            to={user ? '/profile' : '/login'}
-            className={styles.link}
-          >
-            {user ? '👤 Profile' : 'Sign In'}
-          </Link>
-        </li>
+        {pathname !== '/reset-password' && (
+          <li>
+            <Link to={user ? '/profile' : '/login'} className={styles.link}>
+              {user ? '👤 Profile' : 'Sign In'}
+            </Link>
+          </li>
+        )}
         <li>
           <button className={styles.cartBtn} onClick={() => setIsOpen(true)} aria-label="Open cart">
             🛒
