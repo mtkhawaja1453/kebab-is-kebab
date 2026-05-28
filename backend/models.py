@@ -34,6 +34,7 @@ class MenuItem(BaseModel):
     tag:           Optional[str] = None
     emoji:         str
     available:     bool = True
+    image_url:     Optional[str] = None
     option_groups: List[OptionGroup] = []
 
 
@@ -50,6 +51,7 @@ class Order(BaseModel):
     customer_phone: str
     pickup_time:    str
     notes:          Optional[str] = None
+    user_id:        Optional[str] = None
 
 
 class ContactMessage(BaseModel):

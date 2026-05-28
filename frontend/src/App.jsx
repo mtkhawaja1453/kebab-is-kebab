@@ -1,6 +1,8 @@
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { CartProvider } from './context/CartContext'
+import { AuthProvider, useAuth } from './context/AuthContext'
+
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import Home from './pages/Home'
@@ -11,6 +13,9 @@ import Checkout from './pages/Checkout'
 import OrderConfirmation from './pages/OrderConfirmation'
 import CancelRedirect from './pages/CancelRedirect'
 import Admin from './pages/Admin'
+import Login from './pages/Login'
+import Profile from './pages/Profile'
+import ResetPassword from './pages/ResetPassword'
 
 // Scroll to top on every route change
 function ScrollToTop() {
@@ -19,10 +24,27 @@ function ScrollToTop() {
   return null
 }
 
+// Redirect to home if already logged in
+function GuestOnly({ children }) {
+  const { user, loading } = useAuth()
+  if (loading) return null
+  if (user) return <Navigate to="/" replace />
+  return children
+}
+
+// Redirect to login if not logged in  
+function AuthOnly({ children }) {
+  const { user, loading } = useAuth()
+  if (loading) return null
+  if (!user) return <Navigate to="/login" replace />
+  return children
+}
+
 export default function App() {
   return (
+    <AuthProvider>
     <CartProvider>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ScrollToTop />
         <Navbar />
         <CartDrawer />
@@ -30,14 +52,17 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/menu" element={<Menu />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/checkout" element={<Checkout />} />
           <Route path="/order-confirmation" element={<OrderConfirmation />} />
           <Route path="/payment-cancelled" element={<CancelRedirect />} />
-          <Route path="/admin" element={<Admin />} />
-          {/* Future routes: /order, /admin */}
+          <Route path="/login"         element={<GuestOnly><Login /></GuestOnly>} />
+          <Route path="/reset-password" element={<ResetPassword />} />  {/* no guard — needs to work from email */}
+          <Route path="/profile"       element={<AuthOnly><Profile /></AuthOnly>} />
+          <Route path="/checkout"      element={<Checkout />} />  {/* no guard — guests can checkout */}
+          <Route path="/admin"         element={<Admin />} />  {/* has own password guard */}
         </Routes>
         <Footer />
       </BrowserRouter>
     </CartProvider>
+    </AuthProvider>
   )
 }

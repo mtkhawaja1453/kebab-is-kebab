@@ -19,7 +19,12 @@ function MenuCard({ item, index, onOpen }) {
 
   return (
     <div ref={ref} className={`${styles.card} fade-up`} onClick={() => item.available && onOpen(item)} style={{ cursor: item.available ? 'pointer' : 'default' }}>
-      <div className={styles.cardEmoji}>{item.emoji}</div>
+      <div className={styles.cardEmoji}>
+        {item.image_url
+          ? <img src={item.image_url} alt={item.name} className={styles.cardImage} />
+          : item.emoji
+        }
+      </div>
       <div className={styles.cardBody}>
         <div className={styles.cardTop}>
           <h3 className={styles.cardName}>{item.name}</h3>

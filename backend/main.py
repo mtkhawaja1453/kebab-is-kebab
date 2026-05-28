@@ -14,12 +14,24 @@ from admin import router as admin_router
 from models import OrderItem
 
 import resend
+from supabase import create_client
+
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
+from hours_store import read_hours
 
 load_dotenv()
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 resend.api_key = os.getenv("RESEND_API_KEY")
+
+supabase_client = create_client(
+    os.getenv("SUPABASE_URL", ""),
+    os.getenv("SUPABASE_SERVICE_ROLE_KEY", ""),
+) if os.getenv("SUPABASE_URL") else None
 
 app = FastAPI(
     title="Kebab Is Kebab API",
@@ -41,6 +53,10 @@ app.add_middleware(
 )
 
 app.include_router(admin_router)
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # ── CONFIG ────────────────────────────────────────────────────────────────────
 # Change this to update the estimated pickup time shown in confirmation emails.
@@ -220,10 +236,16 @@ def get_menu_item(item_id: int):
         raise HTTPException(status_code=404, detail="Menu item not found")
     return item.model_dump()
 
+# ── HOURS ─────────────────────────────────────────────────────────────────────
+@app.get("/api/hours", tags=["Hours"])
+def get_hours():
+    """Return store opening hours — used by frontend to generate pickup slots."""
+    return {"hours": read_hours()}
 
 # ── ORDERS: Create Stripe Checkout Session ────────────────────────────────────
 @app.post("/api/orders/create-session", tags=["Orders"])
-async def create_checkout_session(order: Order):
+@limiter.limit("10/minute")
+async def create_checkout_session(request: Request, order: Order):
     """
     Validate the order, store all order details in Stripe session metadata,
     then return a Stripe Checkout URL for the frontend to redirect to.
@@ -311,7 +333,6 @@ async def create_checkout_session(order: Order):
     items_meta = "|".join(encode_item(line) for line in order.items)
 
     try:
-        print(f"DEBUG success_url: {FRONTEND_URL}/order-confirmation?session_id={{CHECKOUT_SESSION_ID}}")
         session = stripe.checkout.Session.create(
             payment_method_types=["card"],
             line_items=stripe_line_items,
@@ -328,6 +349,7 @@ async def create_checkout_session(order: Order):
                 "pickup_fmt":      pickup_fmt,
                 "notes":           order.notes or "",
                 "items":           items_meta,
+                "user_id":         order.user_id or "",
             },
         )
     except stripe.StripeError as e:
@@ -431,6 +453,7 @@ async def verify_order_session(session_id: str):
         customer_phone=meta["customer_phone"],
         pickup_time=meta["pickup_time"],
         notes=meta["notes"] or None,
+        user_id=meta.get("user_id") or None,
     )
 
     try:
@@ -438,10 +461,55 @@ async def verify_order_session(session_id: str):
         # Mark emails as sent in Stripe metadata
         stripe.checkout.Session.modify(session_id, metadata={**meta, "emails_sent": "true"})
     except Exception as e:
-        print(f"⚠️  Email send failed for {order_number}: {e}")
+        # print(f"⚠️  Email send failed for {order_number}: {e}")
+        pass
         # Don't fail the request — order is paid, just log it
+        
+    user_id = meta.get("user_id") or None
+    if supabase_client:
+        try:     
+            def _parse_sel(entry):
+                parts = entry.split(":")
+                sel_str = parts[2] if len(parts) > 2 else ""
+                selections = {}
+                if sel_str:
+                    for seg in sel_str.split(";"):
+                        if "=" in seg:
+                            gid, cids = seg.split("=", 1)
+                            selections[gid] = cids.split(",")
+                return selections          
+             
+            order_data = {
+                "user_id":      user_id,
+                "order_number": order_number,
+                "total":        total,
+                "pickup_time":  meta["pickup_time"],
+                "pickup_fmt":   meta["pickup_fmt"],
+                "notes":        meta.get("notes") or None,
+                "status":       "confirmed",
+                "customer_name":  meta.get("customer_name"),
+                "customer_email": meta.get("customer_email"),
+                "customer_phone": meta.get("customer_phone"),
+                "items": [
+                    {
+                        "menu_item_id": int(e.split(":")[0]),
+                        "name":         menu_lookup[int(e.split(":")[0])].name,
+                        "emoji":        menu_lookup[int(e.split(":")[0])].emoji,
+                        "category":     menu_lookup[int(e.split(":")[0])].category.value,
+                        "quantity":     int(e.split(":")[1]),
+                        "line_total":   order_lines[i][3],
+                        "sel_labels":   order_lines[i][4],
+                        "selections":   _parse_sel(e),
+                    }
+                    for i, e in enumerate(meta["items"].split("|"))
+                ],
+            }
+            supabase_client.table("orders").insert(order_data).execute()
+        except Exception as e:
+            # print(f"⚠️ Failed to save order to Supabase: {e}")
+            pass
 
-    print(f"✅ Order {order_number} confirmed — ${total:.2f} — {meta['customer_name']}")
+    # print(f"✅ Order {order_number} confirmed — ${total:.2f} — {meta['customer_name']}")
 
     return {
         "success":          True,
@@ -456,7 +524,8 @@ async def verify_order_session(session_id: str):
 
 # ── CONTACT ───────────────────────────────────────────────────────────────────
 @app.post("/api/contact", tags=["Contact"])
-async def submit_contact(msg: ContactMessage):
+@limiter.limit("5/minute")
+async def submit_contact(request: Request, msg: ContactMessage):
     html_body = f"""
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#f9f9f9;border-radius:8px;">
       <div style="background:#e8a020;padding:16px 24px;border-radius:6px 6px 0 0;">
@@ -481,7 +550,7 @@ async def submit_contact(msg: ContactMessage):
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
-        print(f"❌ Email send failed: {e}")
+        # print(f"❌ Email send failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to send email. Check your GMAIL_APP_PASSWORD in .env.")
 
     return {"success": True, "message": "Thanks! We'll be in touch soon."}

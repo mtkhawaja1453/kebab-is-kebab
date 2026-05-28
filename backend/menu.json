@@ -8,6 +8,7 @@
     "emoji": "🌯",
     "tag": "Best Seller",
     "available": true,
+    "image_url": null,
     "option_groups": [
       {
         "id": "group_1777260918235",
@@ -66,6 +67,7 @@
     "tag": "Popular",
     "emoji": "🌯",
     "available": true,
+    "image_url": null,
     "option_groups": []
   },
   {
@@ -77,6 +79,7 @@
     "tag": "Signature",
     "emoji": "🌯",
     "available": true,
+    "image_url": null,
     "option_groups": []
   },
   {
@@ -88,6 +91,7 @@
     "tag": "Value",
     "emoji": "🥙",
     "available": true,
+    "image_url": null,
     "option_groups": []
   },
   {
@@ -99,6 +103,7 @@
     "tag": "Fan Fave",
     "emoji": "🍕",
     "available": true,
+    "image_url": null,
     "option_groups": []
   },
   {
@@ -107,9 +112,10 @@
     "description": "Crispy pide base topped with marinated chicken, capsicum, onion and melted cheese.",
     "price": 14.0,
     "category": "pizza",
-    "tag": null,
     "emoji": "🍕",
+    "tag": null,
     "available": true,
+    "image_url": null,
     "option_groups": []
   },
   {
@@ -121,6 +127,7 @@
     "tag": "Crowd Pleaser",
     "emoji": "🍟",
     "available": true,
+    "image_url": null,
     "option_groups": []
   },
   {
@@ -132,6 +139,7 @@
     "tag": null,
     "emoji": "🥖",
     "available": true,
+    "image_url": null,
     "option_groups": []
   },
   {
@@ -143,6 +151,7 @@
     "tag": null,
     "emoji": "🥤",
     "available": true,
+    "image_url": null,
     "option_groups": []
   },
   {
@@ -154,6 +163,7 @@
     "tag": null,
     "emoji": "💧",
     "available": true,
+    "image_url": null,
     "option_groups": []
   }
 ]

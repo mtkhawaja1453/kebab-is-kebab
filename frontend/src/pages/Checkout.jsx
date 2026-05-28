@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart, linePrice } from '../context/CartContext'
 import { useFadeUp } from '../hooks/useFadeUp'
-import styles from './Checkout.module.css'
 import { BASE } from '../api'
+import { useAuth } from '../context/AuthContext'
+
+import styles from './Checkout.module.css'
 
 // ── Validation ────────────────────────────────────────────────────────────────
 function validate(form) {
@@ -24,18 +26,35 @@ function validate(form) {
 }
 
 // Generate time slots every 15 min from now+20min until 10pm
-function getPickupSlots() {
-  const slots = [{ value: 'asap', label: 'ASAP (as soon as possible)' }]
+function getPickupSlots(hoursData) {
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+  const now  = new Date()
+  const todayName = days[now.getDay()]
+  const todayHours = hoursData?.find(h => h.day === todayName)
+
+  if (!hoursData || !todayHours || todayHours.closed) {
+    return [] // store closed today
+  }
+
+  const [closeH, closeM] = todayHours.close.split(':').map(Number)
   const close = new Date()
-  close.setHours(22, 0, 0, 0)
+  close.setHours(closeH, closeM, 0, 0)
+
+  const slots = [{ value: 'asap', label: 'ASAP (as soon as possible)' }]
   const start = new Date(Date.now() + 20 * 60 * 1000)
   start.setMinutes(Math.ceil(start.getMinutes() / 15) * 15, 0, 0)
+
+  // Check if we're within opening hours
+  const [openH, openM] = todayHours.open.split(':').map(Number)
+  const openTime = new Date()
+  openTime.setHours(openH, openM, 0, 0)
+  if (now < openTime) start.setTime(openTime.getTime())
+
   let cursor = new Date(start)
   while (cursor <= close) {
     const h   = cursor.getHours()
     const m   = cursor.getMinutes()
     const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h
-    // Store as a simple local time string, not ISO/UTC
     const value = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`
     const label = `${h12}:${m.toString().padStart(2,'0')} ${h >= 12 ? 'pm' : 'am'}`
     slots.push({ value, label })
@@ -46,6 +65,7 @@ function getPickupSlots() {
 
 export default function Checkout() {
   const { items, totalPrice } = useCart()
+  const { user, profile } = useAuth()
   const navigate  = useNavigate()
   const headerRef = useFadeUp()
   const formRef   = useFadeUp(100)
@@ -58,7 +78,33 @@ export default function Checkout() {
   const [status,  setStatus]  = useState('idle')
   const [serverError, setServerError] = useState('')
 
-  const slots = getPickupSlots()
+  const [hoursData, setHoursData] = useState(null)
+  const [storeOpen, setStoreOpen] = useState(true)
+
+  useEffect(() => {
+    fetch(`${BASE}/hours`)
+      .then(r => r.json())
+      .then(data => {
+        setHoursData(data.hours)
+        const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+        const todayName = days[new Date().getDay()]
+        const today = data.hours?.find(h => h.day === todayName)
+        setStoreOpen(today && !today.closed)
+      })
+      .catch(() => setStoreOpen(true)) // fail open
+  }, [])
+
+  const slots = getPickupSlots(hoursData)
+  useEffect(() => {
+    if (profile || user) {
+      setForm(f => ({
+        ...f,
+        name:  f.name  || profile?.full_name || '',
+        email: f.email || user?.email        || '',
+        phone: f.phone || profile?.phone     || '',
+      }))
+    }
+  }, [profile, user])
 
   if (items.length === 0) {
     return (
@@ -110,6 +156,7 @@ export default function Checkout() {
       customer_phone: form.phone.trim(),
       pickup_time:    form.pickupTime,
       notes:          form.notes.trim() || null,
+      user_id:        user?.id || null,
     }
 
     try {
@@ -158,6 +205,12 @@ export default function Checkout() {
       {cancelled && (
         <div className={styles.cancelledBanner}>
           ⚠️ Payment was cancelled — your details are still here. Try again when you're ready.
+        </div>
+      )}
+
+      {!storeOpen && (
+        <div className={styles.cancelledBanner} style={{ borderColor: 'rgba(232,160,32,0.4)', color: 'var(--amber)', background: 'rgba(232,160,32,0.06)' }}>
+          🕐 We're currently closed — online ordering is unavailable right now. Please check back during opening hours.
         </div>
       )}
 
@@ -285,7 +338,7 @@ export default function Checkout() {
             <button
               type="submit"
               className="btn-primary"
-              disabled={status === 'loading'}
+              disabled={status === 'loading' || !storeOpen}
               style={{ width: '100%' }}
             >
               {status === 'loading'

@@ -62,7 +62,7 @@ export default function CartDrawer() {
           <div className={styles.empty}>
             <div className={styles.emptyIcon}>🛒</div>
             <p>Your cart is empty</p>
-            <button className="btn-outline" onClick={() => setIsOpen(false)}>Browse Menu</button>
+            <button className="btn-outline" onClick={() => { setIsOpen(false); navigate('/menu') }}>Browse Menu</button>
           </div>
         ) : (
           <>
